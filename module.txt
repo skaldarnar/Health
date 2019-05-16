@@ -1,0 +1,9 @@
+{
+    "id" : "Health",
+    "version" : "0.1.0-SNAPSHOT",
+    "author" : "",
+    "displayName" : "Health",
+    "description" : "This module provides basic implementation of Health",
+    "dependencies" : [],
+    "serverSideOnly" : false
+}

@@ -44,14 +44,4 @@ public class HealthComponent implements Component {
 
     public boolean destroyEntityOnNoHealth;
 
-    public HealthComponent() {
-    }
-
-    public HealthComponent(int maxHealth, float regenRate, float waitBeforeRegen) {
-        this.maxHealth = maxHealth;
-        this.currentHealth = maxHealth;
-        this.regenRate = regenRate;
-        this.waitBeforeRegen = waitBeforeRegen;
-    }
-
 }

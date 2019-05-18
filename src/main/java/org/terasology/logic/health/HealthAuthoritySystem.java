@@ -38,6 +38,14 @@ import org.terasology.registry.In;
 
 /**
  * This system takes care of healing of entities with HealthComponent.
+ * To increase the health of an entity, send DoHealEvent
+ *
+ * Logic flow for healing:
+ * - DoHealEvent
+ * - BeforeHealEvent
+ * - (HealthComponent saved)
+ * - OnHealedEvent
+ * - FullHealthEvent (if at full health)
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class HealthAuthoritySystem extends BaseComponentSystem implements UpdateSubscriberSystem {

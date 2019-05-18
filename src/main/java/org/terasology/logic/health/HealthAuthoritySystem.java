@@ -140,11 +140,13 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
 
     }
 
+    /** Handles DoHeal event to increase health of entity */
     @ReceiveEvent(components = {HealthComponent.class})
     public void onHeal(DoHealEvent event, EntityRef entity) {
         checkHeal(entity, event.getAmount(), event.getInstigator());
     }
 
+    /** Resets the health of player to maxHealth on re-spawn. */
     @ReceiveEvent
     public void onRespawn(OnPlayerRespawnedEvent event, EntityRef entity, HealthComponent healthComponent) {
         healthComponent.currentHealth = healthComponent.maxHealth;

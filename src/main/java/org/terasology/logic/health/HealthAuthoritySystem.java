@@ -21,20 +21,32 @@ import gnu.trove.list.TFloatList;
 import gnu.trove.list.TIntList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.terasology.audio.StaticSound;
+import org.terasology.audio.events.PlaySoundEvent;
+import org.terasology.audio.events.PlaySoundForOwnerEvent;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.event.ReceiveEvent;
+import org.terasology.entitySystem.prefab.Prefab;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
-import org.terasology.logic.health.event.BeforeHealEvent;
-import org.terasology.logic.health.event.DoHealEvent;
-import org.terasology.logic.health.event.FullHealthEvent;
-import org.terasology.logic.health.event.OnHealedEvent;
+import org.terasology.logic.characters.CharacterMovementComponent;
+import org.terasology.logic.characters.CharacterSoundComponent;
+import org.terasology.logic.characters.CharacterSoundSystem;
+import org.terasology.logic.characters.MovementMode;
+import org.terasology.logic.characters.events.AttackEvent;
+import org.terasology.logic.characters.events.HorizontalCollisionEvent;
+import org.terasology.logic.characters.events.VerticalCollisionEvent;
+import org.terasology.logic.health.event.*;
+import org.terasology.logic.inventory.ItemComponent;
 import org.terasology.logic.players.event.OnPlayerRespawnedEvent;
 import org.terasology.math.TeraMath;
+import org.terasology.math.geom.Vector3f;
 import org.terasology.registry.In;
+import org.terasology.utilities.random.FastRandom;
+import org.terasology.utilities.random.Random;
 
 /**
  * This system takes care of healing of entities with HealthComponent.
@@ -46,6 +58,17 @@ import org.terasology.registry.In;
  * - (HealthComponent saved)
  * - OnHealedEvent
  * - FullHealthEvent (if at full health)
+ *
+ * This system also reacts to OnDamageEvent events and lowers health on the HealthComponent, and handles
+ * horizontal and vertical crashes of entities with HealthComponents.
+ *
+ * Logic flow for damage:
+ * - OnDamageEvent
+ * - BeforeDamageEvent
+ * - (HealthComponent saved)
+ * - OnDamagedEvent
+ * - DestroyEvent (if no health)
+ *
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class HealthAuthoritySystem extends BaseComponentSystem implements UpdateSubscriberSystem {
@@ -57,6 +80,8 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
 
     @In
     private org.terasology.engine.Time time;
+
+    private Random random = new FastRandom();
 
     @Override
     public void update(float delta) {
@@ -100,8 +125,7 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
             if (modifiedAmount > 0) {
                 doHeal(entity, modifiedAmount, instigator);
             } else if (modifiedAmount < 0) {
-                // TODO: Add damage events
-                // doDamage(entity, -modifiedAmount, EngineDamageTypes.HEALING.get(), instigator, EntityRef.NULL);
+                doDamage(entity, -modifiedAmount, EngineDamageTypes.HEALING.get(), instigator, EntityRef.NULL);
             }
         }
     }
@@ -151,5 +175,141 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
     public void onRespawn(OnPlayerRespawnedEvent event, EntityRef entity, HealthComponent healthComponent) {
         healthComponent.currentHealth = healthComponent.maxHealth;
         entity.saveComponent(healthComponent);
+    }
+
+
+    /**
+     * Override the default behavior for an attack, causing it damage as opposed to just destroying it or doing nothing.
+     */
+    @ReceiveEvent(components = HealthComponent.class, netFilter = RegisterMode.AUTHORITY)
+    public void onAttackEntity(AttackEvent event, EntityRef targetEntity) {
+        damageEntity(event, targetEntity);
+    }
+
+    static void damageEntity(AttackEvent event, EntityRef targetEntity) {
+        int damage = 1;
+        Prefab damageType = EngineDamageTypes.PHYSICAL.get();
+        // Calculate damage from item
+        ItemComponent item = event.getDirectCause().getComponent(ItemComponent.class);
+        if (item != null) {
+            damage = item.baseDamage;
+            if (item.damageType != null) {
+                damageType = item.damageType;
+            }
+        }
+
+        targetEntity.send(new DoDamageEvent(damage, damageType, event.getInstigator(), event.getDirectCause()));
+        // consume the event so that the health system can take priority over default engine behavior
+        event.consume();
+    }
+
+    private void doDamage(EntityRef entity, int damageAmount, Prefab damageType, EntityRef instigator, EntityRef directCause) {
+        HealthComponent health = entity.getComponent(HealthComponent.class);
+        CharacterMovementComponent characterMovementComponent = entity.getComponent(CharacterMovementComponent.class);
+        boolean ghost = false;
+        if (characterMovementComponent != null) {
+            ghost = (characterMovementComponent.mode == MovementMode.GHOSTING);
+        }
+        if ((health != null) && !ghost) {
+            int damagedAmount = health.currentHealth - Math.max(health.currentHealth - damageAmount, 0);
+            health.currentHealth -= damagedAmount;
+            health.nextRegenTick = time.getGameTimeInMs() + TeraMath.floorToInt(health.waitBeforeRegen * 1000);
+            entity.saveComponent(health);
+            entity.send(new OnDamagedEvent(damageAmount, damagedAmount, damageType, instigator));
+            if (health.currentHealth == 0 && health.destroyEntityOnNoHealth) {
+                entity.send(new DestroyEvent(instigator, directCause, damageType));
+            }
+        }
+    }
+
+    @ReceiveEvent
+    public void onDamage(DoDamageEvent event, EntityRef entity) {
+        checkDamage(entity, event.getAmount(), event.getDamageType(), event.getInstigator(), event.getDirectCause());
+    }
+
+    private void checkDamage(EntityRef entity, int amount, Prefab damageType, EntityRef instigator, EntityRef directCause) {
+        BeforeDamagedEvent beforeDamage = entity.send(new BeforeDamagedEvent(amount, damageType, instigator, directCause));
+        if (!beforeDamage.isConsumed()) {
+            int damageAmount = TeraMath.floorToInt(beforeDamage.getResultValue());
+            if (damageAmount > 0) {
+                doDamage(entity, damageAmount, damageType, instigator, directCause);
+            } else {
+                doHeal(entity, -damageAmount, instigator);
+            }
+        }
+    }
+
+    @ReceiveEvent
+    public void onDamaged(OnDamagedEvent event, EntityRef entity, CharacterSoundComponent characterSounds) {
+        if (characterSounds.lastSoundTime + CharacterSoundSystem.MIN_TIME < time.getGameTimeInMs()) {
+
+            // play the sound of damage hitting the character for everyone
+            DamageSoundComponent damageSounds = event.getType().getComponent(DamageSoundComponent.class);
+            if (damageSounds != null && !damageSounds.sounds.isEmpty()) {
+                StaticSound sound = random.nextItem(damageSounds.sounds);
+                if (sound != null) {
+                    entity.send(new PlaySoundEvent(sound, 1f));
+                }
+            }
+
+            // play the sound of a client's character being damaged to the client
+            if (!characterSounds.damageSounds.isEmpty()) {
+                StaticSound sound = random.nextItem(characterSounds.damageSounds);
+                if (sound != null) {
+                    entity.send(new PlaySoundForOwnerEvent(sound, characterSounds.damageVolume));
+                }
+            }
+
+            characterSounds.lastSoundTime = time.getGameTimeInMs();
+            entity.saveComponent(characterSounds);
+
+        }
+    }
+
+    @ReceiveEvent(components = {HealthComponent.class})
+    public void onLand(VerticalCollisionEvent event, EntityRef entity) {
+        HealthComponent health = entity.getComponent(HealthComponent.class);
+        float speed = Math.abs(event.getVelocity().y);
+
+        if (speed > health.fallingDamageSpeedThreshold) {
+            int damage = (int) ((speed - health.fallingDamageSpeedThreshold) * health.excessSpeedDamageMultiplier);
+            if (damage > 0) {
+                checkDamage(entity, damage, EngineDamageTypes.PHYSICAL.get(), EntityRef.NULL, EntityRef.NULL);
+            }
+        }
+    }
+
+    @ReceiveEvent(components = {HealthComponent.class})
+    public void onCrash(HorizontalCollisionEvent event, EntityRef entity) {
+        HealthComponent health = entity.getComponent(HealthComponent.class);
+
+        Vector3f vel = new Vector3f(event.getVelocity());
+        vel.y = 0;
+        float speed = vel.length();
+
+        if (speed > health.horizontalDamageSpeedThreshold) {
+            int damage = (int) ((speed - health.horizontalDamageSpeedThreshold) * health.excessSpeedDamageMultiplier);
+            if (damage > 0) {
+                checkDamage(entity, damage, EngineDamageTypes.PHYSICAL.get(), EntityRef.NULL, EntityRef.NULL);
+            }
+        }
+    }
+
+    @ReceiveEvent
+    public void onCrash(HorizontalCollisionEvent event, EntityRef entity, CharacterSoundComponent characterSounds, HealthComponent healthComponent) {
+        Vector3f horizVelocity = new Vector3f(event.getVelocity());
+        horizVelocity.y = 0;
+        float velocity = horizVelocity.length();
+
+        if (velocity > healthComponent.horizontalDamageSpeedThreshold) {
+            if (characterSounds.lastSoundTime + CharacterSoundSystem.MIN_TIME < time.getGameTimeInMs()) {
+                StaticSound sound = random.nextItem(characterSounds.landingSounds);
+                if (sound != null) {
+                    entity.send(new PlaySoundEvent(sound, characterSounds.landingVolume));
+                    characterSounds.lastSoundTime = time.getGameTimeInMs();
+                    entity.saveComponent(characterSounds);
+                }
+            }
+        }
     }
 }

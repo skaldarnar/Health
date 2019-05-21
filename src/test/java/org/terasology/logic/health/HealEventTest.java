@@ -23,11 +23,16 @@ import org.slf4j.LoggerFactory;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.logic.health.event.BeforeHealEvent;
 import org.terasology.logic.health.event.DoHealEvent;
 import org.terasology.logic.players.PlayerCharacterComponent;
 import org.terasology.moduletestingenvironment.ModuleTestingEnvironment;
+import org.terasology.moduletestingenvironment.TestEventReceiver;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 import java.util.Set;
 
 public class HealEventTest extends ModuleTestingEnvironment {
@@ -65,6 +70,63 @@ public class HealEventTest extends ModuleTestingEnvironment {
 
         player.send(new DoHealEvent(999));
         assertEquals(player.getComponent(HealthComponent.class).currentHealth, 100);
+    }
+
+    @Test
+    public void healEventSentTest() {
+        TestEventReceiver<BeforeHealEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeHealEvent.class);
+        List<BeforeHealEvent> list = receiver.getEvents();
+        assertTrue(list.isEmpty());
+
+        HealthComponent healthComponent = new HealthComponent();
+        healthComponent.currentHealth = 0;
+        healthComponent.maxHealth = 100;
+
+        final EntityRef player = entityManager.create();
+        player.addComponent(new PlayerCharacterComponent());
+        player.addComponent(healthComponent);
+
+        player.send(new DoHealEvent(10));
+        assertEquals(1, list.size());
+    }
+
+    @Test
+    public void healEventCancelTest() {
+        HealthComponent healthComponent = new HealthComponent();
+        healthComponent.currentHealth = 0;
+        healthComponent.maxHealth = 100;
+
+        final EntityRef player = entityManager.create();
+        player.addComponent(new PlayerCharacterComponent());
+        player.addComponent(healthComponent);
+
+        TestEventReceiver<BeforeHealEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeHealEvent.class,
+        (event, entity) -> {
+            event.consume();
+        });
+        player.send(new DoHealEvent(10));
+        assertEquals(0, player.getComponent(HealthComponent.class).currentHealth);
+    }
+
+    @Test
+    public void healModifyEventTest() {
+        HealthComponent healthComponent = new HealthComponent();
+        healthComponent.currentHealth = 0;
+        healthComponent.maxHealth = 100;
+
+        final EntityRef player = entityManager.create();
+        player.addComponent(new PlayerCharacterComponent());
+        player.addComponent(healthComponent);
+
+        TestEventReceiver<BeforeHealEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeHealEvent.class,
+                (event, entity) -> {
+                    event.add(10);
+                    event.subtract(5);
+                    event.multiply(2);
+                });
+        // expected = ( initial:10 + 10 - 5 ) * 2 = 30
+        player.send(new DoHealEvent(10));
+        assertEquals(30, player.getComponent(HealthComponent.class).currentHealth);
     }
 
 }

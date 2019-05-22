@@ -22,10 +22,10 @@ import org.terasology.entitySystem.event.Event;
  * Event sent upon an entity reaching full health if previously on less than full health.
  *
  */
-public class FullHealthEvent implements Event {
+public class OnFullyHealedEvent implements Event {
     private EntityRef instigator;
 
-    public FullHealthEvent(EntityRef instigator) {
+    public OnFullyHealedEvent(EntityRef instigator) {
         this.instigator = instigator;
     }
 

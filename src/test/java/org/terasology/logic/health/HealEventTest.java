@@ -20,11 +20,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.health.event.BeforeHealEvent;
+import org.terasology.logic.health.event.DoDamageEvent;
 import org.terasology.logic.health.event.DoHealEvent;
+import org.terasology.logic.health.event.OnDamagedEvent;
 import org.terasology.logic.players.PlayerCharacterComponent;
 import org.terasology.moduletestingenvironment.ModuleTestingEnvironment;
 import org.terasology.moduletestingenvironment.TestEventReceiver;
@@ -38,7 +39,6 @@ import java.util.Set;
 public class HealEventTest extends ModuleTestingEnvironment {
 
     private EntityManager entityManager;
-    private Time time;
 
     private static final Logger logger = LoggerFactory.getLogger(HealEventTest.class);
 
@@ -52,7 +52,6 @@ public class HealEventTest extends ModuleTestingEnvironment {
     @Before
     public void initialize() {
         entityManager = getHostContext().get(EntityManager.class);
-        time = getHostContext().get(Time.class);
     }
 
     @Test
@@ -124,7 +123,7 @@ public class HealEventTest extends ModuleTestingEnvironment {
                     event.subtract(5);
                     event.multiply(2);
                 });
-        // expected = ( initial:10 + 10 - 5 ) * 2 = 30
+        // Expected value is ( initial:10 + 10 - 5 ) * 2 == 30
         player.send(new DoHealEvent(10));
         assertEquals(30, player.getComponent(HealthComponent.class).currentHealth);
     }

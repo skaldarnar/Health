@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.terasology.audio.StaticSound;
 import org.terasology.audio.events.PlaySoundEvent;
 import org.terasology.audio.events.PlaySoundForOwnerEvent;
+import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.event.ReceiveEvent;
@@ -57,7 +58,7 @@ import org.terasology.utilities.random.Random;
  * - BeforeHealEvent
  * - (HealthComponent saved)
  * - OnHealedEvent
- * - FullHealthEvent (if at full health)
+ * - OnFullyHealedEvent (if at full health)
  *
  * This system also reacts to OnDamageEvent events and lowers health on the HealthComponent, and handles
  * horizontal and vertical crashes of entities with HealthComponents.
@@ -79,7 +80,7 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
     private EntityManager entityManager;
 
     @In
-    private org.terasology.engine.Time time;
+    private Time time;
 
     private Random random = new FastRandom();
 
@@ -138,7 +139,7 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
             entity.saveComponent(health);
             entity.send(new OnHealedEvent(healAmount, healedAmount, instigator));
             if (health.currentHealth == health.maxHealth) {
-                entity.send(new FullHealthEvent(instigator));
+                entity.send(new OnFullyHealedEvent(instigator));
             }
         }
     }
@@ -164,13 +165,24 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
 
     }
 
-    /** Handles DoHeal event to increase health of entity */
+    /**
+     * Handles DoHeal event to increase health of entity.
+     *
+     * @param event DoHealEvent which triggered the heal effect.
+     * @param entity The entity which will be healed by the event.
+     */
     @ReceiveEvent(components = {HealthComponent.class})
     public void onHeal(DoHealEvent event, EntityRef entity) {
         checkHeal(entity, event.getAmount(), event.getInstigator());
     }
 
-    /** Resets the health of player to maxHealth on re-spawn. */
+    /**
+     * Resets the health of player to maxHealth on re-spawn.
+     *
+     * @param event OnPlayerRespawnedEvent sent during the re-spwan of player.
+     * @param entity The Player entity.
+     * @param healthComponent The health component attached to player entity.
+     */
     @ReceiveEvent
     public void onRespawn(OnPlayerRespawnedEvent event, EntityRef entity, HealthComponent healthComponent) {
         healthComponent.currentHealth = healthComponent.maxHealth;
@@ -180,6 +192,9 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
 
     /**
      * Override the default behavior for an attack, causing it damage as opposed to just destroying it or doing nothing.
+     *
+     * @param event Attack event sent on targetEntity.
+     * @param targetEntity The entity which is attacked.
      */
     @ReceiveEvent(components = HealthComponent.class, netFilter = RegisterMode.AUTHORITY)
     public void onAttackEntity(AttackEvent event, EntityRef targetEntity) {
@@ -222,6 +237,12 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
         }
     }
 
+    /**
+     * Handles DoDamageEvent to inflict damage to entity with HealthComponent.
+     *
+     * @param event DoDamageEvent causing the damage on the entity.
+     * @param entity The entity which is damaged.
+     */
     @ReceiveEvent
     public void onDamage(DoDamageEvent event, EntityRef entity) {
         checkDamage(entity, event.getAmount(), event.getDamageType(), event.getInstigator(), event.getDirectCause());
@@ -239,6 +260,13 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
         }
     }
 
+    /**
+     * Handles damage sound on inflicting damage to entity.
+     *
+     * @param event OnDamagedEvent triggered when entity is damaged.
+     * @param entity Entity which is damaged.
+     * @param characterSounds Component having sound settings.
+     */
     @ReceiveEvent
     public void onDamaged(OnDamagedEvent event, EntityRef entity, CharacterSoundComponent characterSounds) {
         if (characterSounds.lastSoundTime + CharacterSoundSystem.MIN_TIME < time.getGameTimeInMs()) {
@@ -266,6 +294,12 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
         }
     }
 
+    /**
+     * Causes damage to entity when fallingDamageSpeedThreshold is breached.
+     *
+     * @param event VerticalCollisionEvent sent when falling speed threshold is crossed.
+     * @param entity The entity which is damaged due to falling.
+     */
     @ReceiveEvent(components = {HealthComponent.class})
     public void onLand(VerticalCollisionEvent event, EntityRef entity) {
         HealthComponent health = entity.getComponent(HealthComponent.class);
@@ -279,6 +313,12 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
         }
     }
 
+    /**
+     * Inflicts damage to entity horizontalDamageSpeedThreshold is breached.
+     *
+     * @param event HorizontalCollisionEvent sent when "falling horizontally".
+     * @param entity Entity which is damaged on "horizontal fall".
+     */
     @ReceiveEvent(components = {HealthComponent.class})
     public void onCrash(HorizontalCollisionEvent event, EntityRef entity) {
         HealthComponent health = entity.getComponent(HealthComponent.class);
@@ -295,6 +335,14 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
         }
     }
 
+    /**
+     * Plays landing sound on crashing horizontally.
+     *
+     * @param event HorizontalCollisionEvent sent when "falling horizontally".
+     * @param entity Entity which is damaged on "horizontal fall".
+     * @param characterSounds For getting the sound to be played on crash.
+     * @param healthComponent To play sound only when threshold speed is crossed.
+     */
     @ReceiveEvent
     public void onCrash(HorizontalCollisionEvent event, EntityRef entity, CharacterSoundComponent characterSounds, HealthComponent healthComponent) {
         Vector3f horizVelocity = new Vector3f(event.getVelocity());

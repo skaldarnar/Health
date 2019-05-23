@@ -22,6 +22,7 @@ import org.terasology.entitySystem.Component;
 import java.util.List;
 
 /**
+ * Contains list of damage sounds, one of which is played when entity is damaged.
  */
 public class DamageSoundComponent implements Component {
     public List<StaticSound> sounds = Lists.newArrayList();

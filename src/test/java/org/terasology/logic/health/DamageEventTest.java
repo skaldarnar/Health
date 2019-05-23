@@ -22,7 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.logic.health.event.*;
+import org.terasology.logic.health.event.BeforeDamagedEvent;
+import org.terasology.logic.health.event.DoDamageEvent;
+import org.terasology.logic.health.event.OnHealedEvent;
 import org.terasology.logic.players.PlayerCharacterComponent;
 import org.terasology.moduletestingenvironment.ModuleTestingEnvironment;
 import org.terasology.moduletestingenvironment.TestEventReceiver;
@@ -35,9 +37,9 @@ import static org.junit.Assert.assertTrue;
 
 public class DamageEventTest extends ModuleTestingEnvironment {
 
-    private EntityManager entityManager;
-
     private static final Logger logger = LoggerFactory.getLogger(DamageEventTest.class);
+
+    private EntityManager entityManager;
 
     @Override
     public Set<String> getDependencies() {

@@ -40,7 +40,7 @@ public class HealthChangedEvent implements Event {
      * Method to get the amount by which health has changed.
      *
      * @return The amount by which health changed. This is capped (by the implementing method),
-     *         so if the entity received 9999 damage and only had 10 health, it will be -10.
+     *         so if the entity received 9999 damage and only had 10 health, only 10 points damage will be inflicted.
      */
     public int getHealthChange() {
         return change;

@@ -40,7 +40,14 @@ import org.terasology.logic.characters.MovementMode;
 import org.terasology.logic.characters.events.AttackEvent;
 import org.terasology.logic.characters.events.HorizontalCollisionEvent;
 import org.terasology.logic.characters.events.VerticalCollisionEvent;
-import org.terasology.logic.health.event.*;
+import org.terasology.logic.health.event.BeforeDamagedEvent;
+import org.terasology.logic.health.event.BeforeHealEvent;
+import org.terasology.logic.health.event.DamageSoundComponent;
+import org.terasology.logic.health.event.DoDamageEvent;
+import org.terasology.logic.health.event.DoHealEvent;
+import org.terasology.logic.health.event.OnDamagedEvent;
+import org.terasology.logic.health.event.OnFullyHealedEvent;
+import org.terasology.logic.health.event.OnHealedEvent;
 import org.terasology.logic.inventory.ItemComponent;
 import org.terasology.logic.players.event.OnPlayerRespawnedEvent;
 import org.terasology.math.TeraMath;
@@ -58,7 +65,7 @@ import org.terasology.utilities.random.Random;
  * - BeforeHealEvent
  * - (HealthComponent saved)
  * - OnHealedEvent
- * - OnFullyHealedEvent (if at full health)
+ * - OnFullyHealedEvent (if healed to full health)
  *
  * This system also reacts to OnDamageEvent events and lowers health on the HealthComponent, and handles
  * horizontal and vertical crashes of entities with HealthComponents.
@@ -166,7 +173,7 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
     }
 
     /**
-     * Handles DoHeal event to increase health of entity.
+     * Event handler to increase health of entity.
      *
      * @param event DoHealEvent which triggered the heal effect.
      * @param entity The entity which will be healed by the event.
@@ -314,7 +321,7 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
     }
 
     /**
-     * Inflicts damage to entity horizontalDamageSpeedThreshold is breached.
+     * Inflicts damage to entity if horizontalDamageSpeedThreshold is breached.
      *
      * @param event HorizontalCollisionEvent sent when "falling horizontally".
      * @param entity Entity which is damaged on "horizontal fall".

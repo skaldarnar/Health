@@ -141,10 +141,11 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
     private void doHeal(EntityRef entity, int healAmount, EntityRef instigator) {
         HealthComponent health = entity.getComponent(HealthComponent.class);
         if (health != null) {
-            int healedAmount = Math.min(health.currentHealth + healAmount, health.maxHealth) - health.currentHealth;
-            health.currentHealth += healedAmount;
+            int cappedHealth = Math.min(health.currentHealth + healAmount, health.maxHealth);
+            int cappedHealAmount = cappedHealth - health.currentHealth;
+            health.currentHealth = cappedHealth;
             entity.saveComponent(health);
-            entity.send(new OnHealedEvent(healAmount, healedAmount, instigator));
+            entity.send(new OnHealedEvent(healAmount, cappedHealAmount, instigator));
             if (health.currentHealth == health.maxHealth) {
                 entity.send(new OnFullyHealedEvent(instigator));
             }
@@ -205,10 +206,6 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
      */
     @ReceiveEvent(components = HealthComponent.class, netFilter = RegisterMode.AUTHORITY)
     public void onAttackEntity(AttackEvent event, EntityRef targetEntity) {
-        damageEntity(event, targetEntity);
-    }
-
-    static void damageEntity(AttackEvent event, EntityRef targetEntity) {
         int damage = 1;
         Prefab damageType = EngineDamageTypes.PHYSICAL.get();
         // Calculate damage from item
@@ -233,11 +230,11 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
             ghost = (characterMovementComponent.mode == MovementMode.GHOSTING);
         }
         if ((health != null) && !ghost) {
-            int damagedAmount = health.currentHealth - Math.max(health.currentHealth - damageAmount, 0);
-            health.currentHealth -= damagedAmount;
+            int cappedDamage = Math.min(health.currentHealth, damageAmount);
+            health.currentHealth -= cappedDamage;
             health.nextRegenTick = time.getGameTimeInMs() + TeraMath.floorToInt(health.waitBeforeRegen * 1000);
             entity.saveComponent(health);
-            entity.send(new OnDamagedEvent(damageAmount, damagedAmount, damageType, instigator));
+            entity.send(new OnDamagedEvent(damageAmount, cappedDamage, damageType, instigator));
             if (health.currentHealth == 0 && health.destroyEntityOnNoHealth) {
                 entity.send(new DestroyEvent(instigator, directCause, damageType));
             }
@@ -275,7 +272,7 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
      * @param characterSounds Component having sound settings.
      */
     @ReceiveEvent
-    public void onDamaged(OnDamagedEvent event, EntityRef entity, CharacterSoundComponent characterSounds) {
+    public void onDamaged(OnDamagedEvent event, EntityRef entity, CharacterSoundComponent characterSounds)  {
         if (characterSounds.lastSoundTime + CharacterSoundSystem.MIN_TIME < time.getGameTimeInMs()) {
 
             // play the sound of damage hitting the character for everyone
@@ -307,17 +304,11 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
      * @param event VerticalCollisionEvent sent when falling speed threshold is crossed.
      * @param entity The entity which is damaged due to falling.
      */
-    @ReceiveEvent(components = {HealthComponent.class})
-    public void onLand(VerticalCollisionEvent event, EntityRef entity) {
-        HealthComponent health = entity.getComponent(HealthComponent.class);
+    @ReceiveEvent
+    public void onLand(VerticalCollisionEvent event, EntityRef entity, HealthComponent health) {
         float speed = Math.abs(event.getVelocity().y);
 
-        if (speed > health.fallingDamageSpeedThreshold) {
-            int damage = (int) ((speed - health.fallingDamageSpeedThreshold) * health.excessSpeedDamageMultiplier);
-            if (damage > 0) {
-                checkDamage(entity, damage, EngineDamageTypes.PHYSICAL.get(), EntityRef.NULL, EntityRef.NULL);
-            }
-        }
+        highSpeedDamage(speed, entity, health.fallingDamageSpeedThreshold, health.excessSpeedDamageMultiplier);
     }
 
     /**
@@ -326,16 +317,18 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
      * @param event HorizontalCollisionEvent sent when "falling horizontally".
      * @param entity Entity which is damaged on "horizontal fall".
      */
-    @ReceiveEvent(components = {HealthComponent.class})
-    public void onCrash(HorizontalCollisionEvent event, EntityRef entity) {
-        HealthComponent health = entity.getComponent(HealthComponent.class);
-
+    @ReceiveEvent
+    public void onCrash(HorizontalCollisionEvent event, EntityRef entity, HealthComponent health) {
         Vector3f vel = new Vector3f(event.getVelocity());
         vel.y = 0;
         float speed = vel.length();
 
-        if (speed > health.horizontalDamageSpeedThreshold) {
-            int damage = (int) ((speed - health.horizontalDamageSpeedThreshold) * health.excessSpeedDamageMultiplier);
+        highSpeedDamage(speed, entity, health.horizontalDamageSpeedThreshold, health.excessSpeedDamageMultiplier);
+    }
+
+    private void highSpeedDamage(float speed, EntityRef entity, float threshold, float damageMultiplier) {
+        if (speed > threshold) {
+            int damage = (int) ((speed - threshold) * damageMultiplier);
             if (damage > 0) {
                 checkDamage(entity, damage, EngineDamageTypes.PHYSICAL.get(), EntityRef.NULL, EntityRef.NULL);
             }

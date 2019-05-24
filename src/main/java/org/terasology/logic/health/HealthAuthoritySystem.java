@@ -206,6 +206,10 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
      */
     @ReceiveEvent(components = HealthComponent.class, netFilter = RegisterMode.AUTHORITY)
     public void onAttackEntity(AttackEvent event, EntityRef targetEntity) {
+        damageEntity(event, targetEntity);
+    }
+
+    public static void damageEntity(AttackEvent event, EntityRef targetEntity) {
         int damage = 1;
         Prefab damageType = EngineDamageTypes.PHYSICAL.get();
         // Calculate damage from item

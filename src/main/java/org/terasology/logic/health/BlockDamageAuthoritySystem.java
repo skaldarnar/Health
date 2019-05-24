@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 MovingBlocks
+ * Copyright 2019 MovingBlocks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@ import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.logic.characters.events.AttackEvent;
+import org.terasology.logic.health.event.BeforeDamagedEvent;
+import org.terasology.logic.health.event.OnDamagedEvent;
+import org.terasology.logic.health.event.OnFullyHealedEvent;
 import org.terasology.logic.location.LocationComponent;
 import org.terasology.math.TeraMath;
 import org.terasology.math.geom.Vector2f;
@@ -56,7 +59,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * This system is responsible for giving blocks health when they are attacked and damaging them instead of destroying them.
+ * This system is responsible for giving blocks health when they are attacked and
+ * damaging them instead of destroying them.
  */
 @RegisterSystem
 public class BlockDamageAuthoritySystem extends BaseComponentSystem {
@@ -91,7 +95,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
     }
 
     @ReceiveEvent(components = {BlockDamagedComponent.class})
-    public void onRepaired(FullHealthEvent event, EntityRef entity) {
+    public void onRepaired(OnFullyHealedEvent event, EntityRef entity) {
         entity.removeComponent(BlockDamagedComponent.class);
     }
 
@@ -141,7 +145,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
      * @param location the location of the damaged block
      */
     private void createBlockParticleEffect(BlockFamily family, Vector3f location) {
-        EntityBuilder builder = entityManager.newBuilder("core:defaultBlockParticles");
+        EntityBuilder builder = entityManager.newBuilder("health:defaultBlockParticles");
         builder.getComponent(LocationComponent.class).setWorldPosition(location);
 
         Optional<Texture> terrainTexture = Assets.getTexture("engine:terrain");
@@ -234,7 +238,10 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
         if (!blockEntity.hasComponent(HealthComponent.class)) {
             Block type = blockComponent.block;
             if (type.isDestructible()) {
-                HealthComponent healthComponent = new HealthComponent(type.getHardness(), type.getHardness() / BLOCK_REGEN_SECONDS, 1.0f);
+                HealthComponent healthComponent = new HealthComponent();
+                healthComponent.maxHealth = type.getHardness();
+                healthComponent.regenRate = type.getHardness() / BLOCK_REGEN_SECONDS;
+                healthComponent.waitBeforeRegen = 1.0f;
                 healthComponent.destroyEntityOnNoHealth = true;
                 blockEntity.addComponent(healthComponent);
             }

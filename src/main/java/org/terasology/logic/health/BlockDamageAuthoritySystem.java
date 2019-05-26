@@ -83,6 +83,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
 
     private Random random = new FastRandom();
 
+    /** Consumes damage event if block is indestructible. */
     @ReceiveEvent
     public void beforeDamaged(BeforeDamagedEvent event, EntityRef blockEntity, BlockComponent blockComp) {
         if (!blockComp.block.isDestructible()) {
@@ -90,6 +91,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
         }
     }
 
+    /** Consumes damage event if entity acting as block is indestructible. */
     @ReceiveEvent
     public void beforeDamaged(BeforeDamagedEvent event, EntityRef blockEntity, ActAsBlockComponent blockComp) {
         if (blockComp.block != null && !blockComp.block.getArchetypeBlock().isDestructible()) {
@@ -97,11 +99,17 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
         }
     }
 
+    /**
+     * Removes the marker component when block is fully healed.
+     * @param event Event sent when block is fully healed
+     * @param entity Block entity
+     */
     @ReceiveEvent(components = {BlockDamagedComponent.class})
     public void onRepaired(OnFullyHealedEvent event, EntityRef entity) {
         entity.removeComponent(BlockDamagedComponent.class);
     }
 
+    /** Adds marker component to block which is damaged. */
     @ReceiveEvent
     public void onDamaged(OnDamagedEvent event, EntityRef entity, BlockComponent blockComponent, LocationComponent locComp) {
         onDamagedCommon(event, blockComponent.block.getBlockFamily(), locComp.getWorldPosition(), entity);
@@ -128,6 +136,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
         }
     }
 
+    /** Calls helper function to create block particle effect and plays damage sound. */
     private void onPlayBlockDamageCommon(BlockFamily family, Vector3f location, EntityRef entityRef) {
         createBlockParticleEffect(family, location);
 
@@ -222,6 +231,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
         }
     }
 
+    /** Causes damage to block without health component, leads to adding health component to the block. */
     @ReceiveEvent(netFilter = RegisterMode.AUTHORITY)
     public void onAttackHealthlessBlock(AttackEvent event, EntityRef targetEntity, BlockComponent blockComponent) {
         if (!targetEntity.hasComponent(HealthComponent.class)) {
@@ -236,6 +246,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
         }
     }
 
+    /** Adds health component to blocks when damaged. */
     @ReceiveEvent
     public void beforeDamagedEnsureHealthPresent(BeforeDamagedEvent event, EntityRef blockEntity, BlockComponent blockComponent) {
         if (!blockEntity.hasComponent(HealthComponent.class)) {

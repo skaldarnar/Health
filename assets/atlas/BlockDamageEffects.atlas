@@ -1,5 +1,5 @@
 {
-    "texture": "core:BlockDamageEffects",
+    "texture": "health:BlockDamageEffects",
     "textureSize": [160, 16],
     "grid": {
         "tileSize": [16, 16],

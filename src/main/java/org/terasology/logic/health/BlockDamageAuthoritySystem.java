@@ -15,6 +15,8 @@
  */
 package org.terasology.logic.health;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.audio.AudioManager;
 import org.terasology.audio.StaticSound;
 import org.terasology.audio.events.PlaySoundEvent;
@@ -65,6 +67,7 @@ import java.util.stream.Stream;
 @RegisterSystem
 public class BlockDamageAuthoritySystem extends BaseComponentSystem {
     private static final float BLOCK_REGEN_SECONDS = 4.0f;
+    private static final Logger logger = LoggerFactory.getLogger(BlockDamageAuthoritySystem.class);
 
     @In
     private EntityManager entityManager;
@@ -240,6 +243,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
             if (type.isDestructible()) {
                 HealthComponent healthComponent = new HealthComponent();
                 healthComponent.maxHealth = type.getHardness();
+                healthComponent.currentHealth = type.getHardness();
                 healthComponent.regenRate = type.getHardness() / BLOCK_REGEN_SECONDS;
                 healthComponent.waitBeforeRegen = 1.0f;
                 healthComponent.destroyEntityOnNoHealth = true;

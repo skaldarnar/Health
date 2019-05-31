@@ -1,7 +1,7 @@
 {
     "location": {},
     "particleDataSprite": {
-        "texture": "core:fx_smoke"
+        "texture": "health:fx_smoke"
     },
     "energyRangeGenerator": {
         "minEnergy": 0.5,

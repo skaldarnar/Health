@@ -52,7 +52,7 @@ public class RegenTest extends ModuleTestingEnvironment {
     }
 
     @Test
-    public void regenTest() {
+    public void beforeRegenEventTest() {
         HealthComponent healthComponent = new HealthComponent();
         healthComponent.currentHealth = 100;
         healthComponent.maxHealth = 100;
@@ -69,12 +69,40 @@ public class RegenTest extends ModuleTestingEnvironment {
 
         player.send(new DoDamageEvent(5));
         assertEquals(healthComponent.currentHealth, 95);
-        float currentTick = time.getGameTime();
+
         // 1 sec wait before regen, 5 secs for regen, 0.1 sec for padding.
         float tick = time.getGameTime() + 6 + 0.100f;
-        int heal = 0;
-        runWhile(()-> time.getGameTime() <= tick );
+        runWhile(()-> time.getGameTime() <= tick);
+
         assertEquals(5, list.size());
         assertEquals(healthComponent.currentHealth, 100);
+    }
+
+    @Test
+    public void regenEventCancelTest() {
+        HealthComponent healthComponent = new HealthComponent();
+        healthComponent.currentHealth = 100;
+        healthComponent.maxHealth = 100;
+        healthComponent.waitBeforeRegen = 0;
+        healthComponent.regenRate = 10;
+
+        final EntityRef player = entityManager.create();
+        player.addComponent(new PlayerCharacterComponent());
+        player.addComponent(healthComponent);
+
+        TestEventReceiver<BeforeRegenEvent> receiver = new TestEventReceiver<>(getHostContext(),
+                BeforeRegenEvent.class,
+                (event, entity) -> {
+                    event.consume();
+                });
+        List<BeforeRegenEvent> list = receiver.getEvents();
+
+        player.send(new DoDamageEvent(10));
+        assertTrue(list.isEmpty());
+
+        float tick = time.getGameTime() + 1 + 0.100f;
+        runWhile(()-> time.getGameTime() <= tick);
+
+        assertEquals(90, player.getComponent(HealthComponent.class).currentHealth);
     }
 }

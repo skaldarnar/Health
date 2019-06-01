@@ -32,7 +32,6 @@ import org.terasology.entitySystem.prefab.Prefab;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
-import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.characters.CharacterMovementComponent;
 import org.terasology.logic.characters.CharacterSoundComponent;
 import org.terasology.logic.characters.CharacterSoundSystem;
@@ -42,14 +41,12 @@ import org.terasology.logic.characters.events.HorizontalCollisionEvent;
 import org.terasology.logic.characters.events.VerticalCollisionEvent;
 import org.terasology.logic.health.event.BeforeDamagedEvent;
 import org.terasology.logic.health.event.BeforeHealEvent;
-import org.terasology.logic.health.event.BeforeRegenEvent;
 import org.terasology.logic.health.event.DamageSoundComponent;
 import org.terasology.logic.health.event.DoDamageEvent;
 import org.terasology.logic.health.event.DoHealEvent;
 import org.terasology.logic.health.event.OnDamagedEvent;
 import org.terasology.logic.health.event.OnFullyHealedEvent;
 import org.terasology.logic.health.event.OnHealedEvent;
-import org.terasology.logic.health.event.OnRegenedEvent;
 import org.terasology.logic.inventory.ItemComponent;
 import org.terasology.logic.players.event.OnPlayerRespawnedEvent;
 import org.terasology.math.TeraMath;
@@ -61,12 +58,6 @@ import org.terasology.utilities.random.Random;
 /**
  * This system takes care of healing of entities with HealthComponent.
  * To increase the health of an entity, send DoHealEvent
- *
- * Logic flow for Regen:
- * - BeforeRegenEvent
- * - (Health regenerated, HealthComponent saved)
- * - OnRegenedEvent
- * - OnFullyHealedEvent (if healed to full health)
  *
  * Logic flow for healing:
  * - DoHealEvent
@@ -87,7 +78,7 @@ import org.terasology.utilities.random.Random;
  *
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
-public class HealthAuthoritySystem extends BaseComponentSystem implements UpdateSubscriberSystem {
+public class HealthAuthoritySystem extends BaseComponentSystem {
 
     private static final Logger logger = LoggerFactory.getLogger(HealthAuthoritySystem.class);
 
@@ -98,64 +89,6 @@ public class HealthAuthoritySystem extends BaseComponentSystem implements Update
     private Time time;
 
     private Random random = new FastRandom();
-
-    @Override
-    public void update(float delta) {
-        for (EntityRef entity : entityManager.getEntitiesWith(HealthComponent.class)) {
-            HealthComponent health = entity.getComponent(HealthComponent.class);
-            if (health.currentHealth <= 0) {
-                continue;
-            }
-
-            if (health.currentHealth == health.maxHealth || health.regenRate == 0) {
-                continue;
-            }
-
-            int healAmount = 0;
-            healAmount = regenerateHealthAmount(health, healAmount);
-
-            checkRegenerated(entity, health, healAmount);
-        }
-    }
-
-    private int regenerateHealthAmount(HealthComponent health, int healAmount) {
-        int newHeal = healAmount;
-        while (time.getGameTimeInMs() >= health.nextRegenTick) {
-            newHeal++;
-            health.nextRegenTick = health.nextRegenTick + (long) (1000 / health.regenRate);
-        }
-        return newHeal;
-    }
-
-    private void checkRegenerated(EntityRef entity, HealthComponent health, int healAmount) {
-        if (healAmount > 0) {
-            BeforeRegenEvent beforeRegen = entity.send(new BeforeRegenEvent(healAmount, entity));
-            if (!beforeRegen.isConsumed()) {
-                int modifiedAmount = TeraMath.floorToInt(beforeRegen.getResultValue());
-                if (modifiedAmount > 0) {
-                    doRegenerate(entity, modifiedAmount, entity);
-                } else if (modifiedAmount < 0) {
-                    doDamage(entity, -modifiedAmount, EngineDamageTypes.HEALING.get(), entity, EntityRef.NULL);
-                }
-            }
-            entity.saveComponent(health);
-        }
-    }
-
-    private void doRegenerate(EntityRef entity, int healAmount, EntityRef instigator) {
-        HealthComponent health = entity.getComponent(HealthComponent.class);
-        if (health != null) {
-            int cappedHealth = Math.min(health.currentHealth + healAmount, health.maxHealth);
-            int cappedHealAmount = cappedHealth - health.currentHealth;
-            health.currentHealth = cappedHealth;
-            entity.saveComponent(health);
-            entity.send(new OnRegenedEvent(cappedHealAmount, entity));
-            if (health.currentHealth == health.maxHealth) {
-                entity.send(new OnFullyHealedEvent(instigator));
-            }
-        }
-    }
-
 
     private void checkHeal(EntityRef entity, int healAmount, EntityRef instigator) {
         BeforeHealEvent beforeHeal = entity.send(new BeforeHealEvent(healAmount, instigator));

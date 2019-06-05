@@ -88,8 +88,6 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
                     // Calculate this multiplier to account for time delays.
                     int multiplier = (int) (currentTime - lastRegenTick) / REGENERATION_TICK;
 
-                    component.nextRegenTick = currentTime + REGENERATION_TICK;
-
                     int amount = TeraMath.floorToInt(component.regenRate * multiplier);
                     checkRegenerated(entity, component, amount);
                 }
@@ -116,6 +114,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
             int cappedHealth = Math.min(health.currentHealth + healAmount, health.maxHealth);
             int cappedHealAmount = cappedHealth - health.currentHealth;
             health.currentHealth = cappedHealth;
+            health.nextRegenTick = time.getGameTimeInMs() + REGENERATION_TICK;
             entity.saveComponent(health);
             entity.send(new OnRegenedEvent(cappedHealAmount, entity));
             if (health.currentHealth == health.maxHealth) {

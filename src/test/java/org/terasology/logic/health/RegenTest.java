@@ -56,12 +56,15 @@ public class RegenTest extends ModuleTestingEnvironment {
         HealthComponent healthComponent = new HealthComponent();
         healthComponent.currentHealth = 100;
         healthComponent.maxHealth = 100;
-        healthComponent.waitBeforeRegen = 1;
-        healthComponent.regenRate = 1;
+
+        RegenComponent regenComponent = new RegenComponent();
+        regenComponent.waitBeforeRegen = 1;
+        regenComponent.regenRate = 1;
 
         final EntityRef player = entityManager.create();
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
+        player.addComponent(regenComponent);
 
         TestEventReceiver<BeforeRegenEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeRegenEvent.class);
         List<BeforeRegenEvent> list = receiver.getEvents();
@@ -83,12 +86,15 @@ public class RegenTest extends ModuleTestingEnvironment {
         HealthComponent healthComponent = new HealthComponent();
         healthComponent.currentHealth = 100;
         healthComponent.maxHealth = 100;
-        healthComponent.waitBeforeRegen = 0;
-        healthComponent.regenRate = 10;
+
+        RegenComponent regenComponent = new RegenComponent();
+        regenComponent.waitBeforeRegen = 1;
+        regenComponent.regenRate = 1;
 
         final EntityRef player = entityManager.create();
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
+        player.addComponent(regenComponent);
 
         TestEventReceiver<BeforeRegenEvent> receiver = new TestEventReceiver<>(getHostContext(),
                 BeforeRegenEvent.class,

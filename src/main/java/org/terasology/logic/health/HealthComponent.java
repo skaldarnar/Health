@@ -29,14 +29,6 @@ public class HealthComponent implements Component {
     @Replicate
     public int maxHealth = 20;
 
-    /** Amount of health restored in each regeneration tick. */
-    @Replicate
-    public float regenRate;
-
-    /** Time delay before regeneration starts. */
-    @Replicate
-    public float waitBeforeRegen;
-
     /** Falling speed threshold above which damage is inflicted to entity. */
     @Replicate
     public float fallingDamageSpeedThreshold = 20;
@@ -54,9 +46,6 @@ public class HealthComponent implements Component {
     @Replicate
     @TextField
     public int currentHealth = 20;
-
-    /** Next tick time that will trigger regeneration. */
-    public long nextRegenTick;
 
     /** Used to send Destroy event when health breaches zero. */
     public boolean destroyEntityOnNoHealth;

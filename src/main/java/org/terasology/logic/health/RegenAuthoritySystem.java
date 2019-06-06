@@ -74,21 +74,22 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
             // entities with the given regenAmount.
             for (EntityRef entity : entityManager.getEntitiesWith(HealthComponent.class)) {
                 HealthComponent component = entity.getComponent(HealthComponent.class);
+                RegenComponent regen = entity.getComponent(RegenComponent.class);
 
                 if (component.currentHealth <= 0) {
                     continue;
                 }
 
-                if (component.currentHealth == component.maxHealth || component.regenRate == 0) {
+                if (component.currentHealth == component.maxHealth || regen.regenRate == 0) {
                     continue;
                 }
 
-                long lastRegenTick = component.nextRegenTick - REGENERATION_TICK;
+                long lastRegenTick = regen.nextRegenTick - REGENERATION_TICK;
                 if (currentTime >= lastRegenTick + REGENERATION_TICK) {
                     // Calculate this multiplier to account for time delays.
                     int multiplier = (int) (currentTime - lastRegenTick) / REGENERATION_TICK;
 
-                    int amount = TeraMath.floorToInt(component.regenRate * multiplier);
+                    int amount = TeraMath.floorToInt(regen.regenRate * multiplier);
                     checkRegenerated(entity, component, amount);
                 }
             }
@@ -110,11 +111,12 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
 
     private void doRegenerate(EntityRef entity, int healAmount, EntityRef instigator) {
         HealthComponent health = entity.getComponent(HealthComponent.class);
+        RegenComponent component = entity.getComponent(RegenComponent.class);
         if (health != null) {
             int cappedHealth = Math.min(health.currentHealth + healAmount, health.maxHealth);
             int cappedHealAmount = cappedHealth - health.currentHealth;
             health.currentHealth = cappedHealth;
-            health.nextRegenTick = time.getGameTimeInMs() + REGENERATION_TICK;
+            component.nextRegenTick = time.getGameTimeInMs() + REGENERATION_TICK;
             entity.saveComponent(health);
             entity.send(new OnRegenedEvent(cappedHealAmount, entity));
             if (health.currentHealth == health.maxHealth) {

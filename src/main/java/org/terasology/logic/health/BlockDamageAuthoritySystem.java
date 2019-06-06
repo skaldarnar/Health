@@ -255,10 +255,14 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
                 HealthComponent healthComponent = new HealthComponent();
                 healthComponent.maxHealth = type.getHardness();
                 healthComponent.currentHealth = type.getHardness();
-                healthComponent.regenRate = type.getHardness() / BLOCK_REGEN_SECONDS;
-                healthComponent.waitBeforeRegen = 1.0f;
                 healthComponent.destroyEntityOnNoHealth = true;
+
+                RegenComponent regen = new RegenComponent();
+                regen.regenRate = type.getHardness() / BLOCK_REGEN_SECONDS;
+                regen.waitBeforeRegen = 1.0f;
+
                 blockEntity.addComponent(healthComponent);
+                blockEntity.addComponent(regen);
             }
         }
     }

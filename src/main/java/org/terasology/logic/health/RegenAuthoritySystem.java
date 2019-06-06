@@ -15,9 +15,17 @@
  */
 package org.terasology.logic.health;
 
+import com.google.common.collect.Ordering;
+import com.google.common.collect.SortedSetMultimap;
+import com.google.common.collect.TreeMultimap;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.entitySystem.entity.lifecycleEvents.BeforeDeactivateComponent;
+import org.terasology.entitySystem.entity.lifecycleEvents.BeforeRemoveComponent;
+import org.terasology.entitySystem.entity.lifecycleEvents.OnActivatedComponent;
+import org.terasology.entitySystem.entity.lifecycleEvents.OnAddedComponent;
+import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
@@ -27,6 +35,10 @@ import org.terasology.logic.health.event.OnFullyHealedEvent;
 import org.terasology.logic.health.event.OnRegenedEvent;
 import org.terasology.math.TeraMath;
 import org.terasology.registry.In;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This system handles the natural regeneration of entities with HealthComponent.
@@ -40,6 +52,10 @@ import org.terasology.registry.In;
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateSubscriberSystem {
+
+    private SortedSetMultimap<Long, EntityRef> regenSortedByTime = TreeMultimap.create(Ordering.natural(),
+            Ordering.arbitrary());
+
     /** Integer storing when to check each effect. */
     private static final int CHECK_INTERVAL = 100;
 
@@ -63,6 +79,8 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     @Override
     public void update(float delta) {
         final long currentTime = time.getGameTimeInMs();
+        // Execute regen schedule
+        invokeRegenOperations(currentTime);
 
         // If the current time passes the CHECK_INTERVAL threshold, regenerate.
         if (currentTime >= lastUpdated + CHECK_INTERVAL) {
@@ -125,4 +143,45 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         }
     }
 
+    // Regenerates if regenTime is greater than currentTime
+    private void invokeRegenOperations(long currentWorldTime) {
+        List<EntityRef> operationsToInvoke = new LinkedList<>();
+        Iterator<Long> regenTimeIterator = regenSortedByTime.keySet().iterator();
+        long processedTime;
+        while (regenTimeIterator.hasNext()) {
+            processedTime = regenTimeIterator.next();
+            if (processedTime > currentWorldTime) {
+                break;
+            }
+            operationsToInvoke.addAll(regenSortedByTime.get(processedTime));
+            // DO we need to remove every time? yes.
+            regenTimeIterator.remove();
+        }
+
+        operationsToInvoke.stream().filter(EntityRef::exists).forEach(regenEntity -> {
+            final RegenComponent regenComponent =
+                    regenEntity.getComponent(RegenComponent.class);
+            // Add a check for health component too?
+
+            // If there is a RegenComponent, proceed. Else report an error to the log.
+            if (regenComponent != null) {
+                // regen
+                // update nextRegenTick
+                // Update regenSortedByTime to have next tick
+                // save regenComp
+            }
+        });
+    }
+
+    @ReceiveEvent
+    public void onRegenComponentAdded(OnActivatedComponent event, EntityRef entity, RegenComponent regen,
+                                      HealthComponent health) {
+        // add this entity to scheduler (regenSortedByTime)
+    }
+
+    @ReceiveEvent
+    public void onRegenComponentRemoved(BeforeDeactivateComponent event, EntityRef entity, RegenComponent regen,
+                                        HealthComponent health) {
+        // remove this entity from scheduler
+    }
 }

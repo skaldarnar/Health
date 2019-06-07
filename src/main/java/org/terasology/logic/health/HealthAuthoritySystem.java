@@ -192,7 +192,6 @@ public class HealthAuthoritySystem extends BaseComponentSystem {
 
     private void doDamage(EntityRef entity, int damageAmount, Prefab damageType, EntityRef instigator, EntityRef directCause) {
         HealthComponent health = entity.getComponent(HealthComponent.class);
-        RegenComponent regen = entity.getComponent(RegenComponent.class);
         CharacterMovementComponent characterMovementComponent = entity.getComponent(CharacterMovementComponent.class);
         boolean ghost = false;
         if (characterMovementComponent != null) {
@@ -201,7 +200,6 @@ public class HealthAuthoritySystem extends BaseComponentSystem {
         if ((health != null) && !ghost) {
             int cappedDamage = Math.min(health.currentHealth, damageAmount);
             health.currentHealth -= cappedDamage;
-            regen.nextRegenTick = time.getGameTimeInMs() + TeraMath.floorToInt(regen.waitBeforeRegen * 1000);
             entity.saveComponent(health);
             entity.send(new OnDamagedEvent(damageAmount, cappedDamage, damageType, instigator));
             if (health.currentHealth == 0 && health.destroyEntityOnNoHealth) {

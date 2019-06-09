@@ -5,9 +5,7 @@
     "excessSpeedDamageMultiplier": 5,
     "fallingDamageSpeedThreshold": 18,
     "horizontalDamageSpeedThreshold": 50,
-    "destroyEntityOnNoHealth": true
-  },
-  "Regen": {
+    "destroyEntityOnNoHealth": true,
     "regenRate": 3,
     "waitBeforeRegen": 10
   }

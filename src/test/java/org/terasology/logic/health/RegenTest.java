@@ -58,8 +58,8 @@ public class RegenTest extends ModuleTestingEnvironment {
         healthComponent.maxHealth = 100;
 
         RegenComponent regenComponent = new RegenComponent();
-        regenComponent.waitBeforeRegen = 1;
-        regenComponent.regenRate = 1;
+        healthComponent.waitBeforeRegen = 1;
+        healthComponent.regenRate = 1;
 
         final EntityRef player = entityManager.create();
         player.addComponent(new PlayerCharacterComponent());
@@ -88,8 +88,8 @@ public class RegenTest extends ModuleTestingEnvironment {
         healthComponent.maxHealth = 100;
 
         RegenComponent regenComponent = new RegenComponent();
-        regenComponent.waitBeforeRegen = 1;
-        regenComponent.regenRate = 1;
+        healthComponent.waitBeforeRegen = 1;
+        healthComponent.regenRate = 1;
 
         final EntityRef player = entityManager.create();
         player.addComponent(new PlayerCharacterComponent());

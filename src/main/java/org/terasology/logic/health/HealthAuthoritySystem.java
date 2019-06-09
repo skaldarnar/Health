@@ -39,6 +39,7 @@ import org.terasology.logic.characters.MovementMode;
 import org.terasology.logic.characters.events.AttackEvent;
 import org.terasology.logic.characters.events.HorizontalCollisionEvent;
 import org.terasology.logic.characters.events.VerticalCollisionEvent;
+import org.terasology.logic.health.event.ActivateRegenEvent;
 import org.terasology.logic.health.event.BeforeDamagedEvent;
 import org.terasology.logic.health.event.BeforeHealEvent;
 import org.terasology.logic.health.event.DamageSoundComponent;
@@ -200,6 +201,7 @@ public class HealthAuthoritySystem extends BaseComponentSystem {
         if ((health != null) && !ghost) {
             int cappedDamage = Math.min(health.currentHealth, damageAmount);
             health.currentHealth -= cappedDamage;
+            entity.send(new ActivateRegenEvent());
             entity.saveComponent(health);
             entity.send(new OnDamagedEvent(damageAmount, cappedDamage, damageType, instigator));
             if (health.currentHealth == 0 && health.destroyEntityOnNoHealth) {

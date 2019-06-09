@@ -22,12 +22,12 @@ public class ActivateRegenEvent implements Event {
     public int value;
     public float endTime;
 
-    ActivateRegenEvent() {
+    public ActivateRegenEvent() {
         id = "baseRegen";
         endTime = 0;
     }
 
-    ActivateRegenEvent(String id, int value, float endTime) {
+    public ActivateRegenEvent(String id, int value, float endTime) {
         this.id = id;
         this.value = value;
         this.endTime = endTime;

@@ -118,6 +118,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         if (event.id.equals("baseRegen")) {
             // setting endTime to MAX_VALUE because natural regen happens till entity fully regenerates
             regen.addRegen(event.id, health.regenRate, Long.MAX_VALUE);
+            regen.addRegen("wait", -health.regenRate, (long) (health.waitBeforeRegen * 1000));
         } else {
             regen.addRegen(event.id, event.value, (long) (event.endTime * 1000));
         }

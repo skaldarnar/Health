@@ -50,4 +50,17 @@ public class HealthComponent implements Component {
     /** Used to send Destroy event when health breaches zero. */
     public boolean destroyEntityOnNoHealth;
 
+    // Regen Info
+
+    /** Amount of health restored in each regeneration tick. */
+    @Replicate
+    public float regenRate;
+
+    /** Time delay before regeneration starts. */
+    @Replicate
+    public float waitBeforeRegen;
+
+    /** Next tick time that will trigger regeneration. */
+    public long nextRegenTick;
+
 }

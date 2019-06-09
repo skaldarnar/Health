@@ -106,11 +106,11 @@ public class HealthCommands extends BaseComponentSystem {
             requiredPermission = PermissionManager.CHEAT_PERMISSION)
     public String setRegenRate(@Sender EntityRef client, @CommandParam("rate") float rate) {
         ClientComponent clientComp = client.getComponent(ClientComponent.class);
-        RegenComponent regen = clientComp.character.getComponent(RegenComponent.class);
-        float oldRegenRate = regen.regenRate;
-        if (regen != null) {
-            regen.regenRate = rate;
-            clientComp.character.saveComponent(regen);
+        HealthComponent health= clientComp.character.getComponent(HealthComponent.class);
+        float oldRegenRate = health.regenRate;
+        if (health != null) {
+            health.regenRate = rate;
+            clientComp.character.saveComponent(health);
         }
         return "Health regeneration changed from " + oldRegenRate + " to " + rate;
     }
@@ -119,9 +119,8 @@ public class HealthCommands extends BaseComponentSystem {
     public String showHealth(@Sender EntityRef client) {
         ClientComponent clientComp = client.getComponent(ClientComponent.class);
         HealthComponent health = clientComp.character.getComponent(HealthComponent.class);
-        RegenComponent regen = clientComp.character.getComponent(RegenComponent.class);
         if (health != null) {
-            return "Your health:" + health.currentHealth + " max:" + health.maxHealth + " regen:" + regen.regenRate;
+            return "Your health:" + health.currentHealth + " max:" + health.maxHealth + " regen:" + health.regenRate;
         }
         return "I guess you're dead?";
     }

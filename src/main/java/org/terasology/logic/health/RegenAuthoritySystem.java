@@ -23,19 +23,12 @@ import org.slf4j.LoggerFactory;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.entitySystem.entity.lifecycleEvents.BeforeDeactivateComponent;
-import org.terasology.entitySystem.entity.lifecycleEvents.BeforeRemoveComponent;
-import org.terasology.entitySystem.entity.lifecycleEvents.OnActivatedComponent;
-import org.terasology.entitySystem.entity.lifecycleEvents.OnAddedComponent;
 import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
-import org.terasology.logic.health.event.BeforeRegenEvent;
-import org.terasology.logic.health.event.OnFullyHealedEvent;
-import org.terasology.logic.health.event.OnRegenedEvent;
-import org.terasology.math.TeraMath;
+import org.terasology.logic.health.event.ActivateRegenEvent;
 import org.terasology.registry.In;
 
 import java.util.Iterator;
@@ -57,17 +50,12 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
 
     private static final Logger logger = LoggerFactory.getLogger(RegenComponent.class);
 
+    // Stores when next to check for new value of regen, contains only entities which are being regenerated
     private SortedSetMultimap<Long, EntityRef> regenSortedByTime = TreeMultimap.create(Ordering.natural(),
             Ordering.arbitrary());
 
     /** Integer storing when to check each effect. */
     private static final int CHECK_INTERVAL = 100;
-
-    /** Integer storing when to apply regen health */
-    private static final int REGENERATION_TICK = 1000;
-
-    /** Last time the list of regen effects were checked. */
-    private long lastUpdated;
 
     @In
     private Time time;
@@ -87,7 +75,6 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         invokeRegenOperations(currentTime);
     }
 
-    // Regenerates if regenTime is greater than currentTime
     private void invokeRegenOperations(long currentWorldTime) {
         List<EntityRef> operationsToInvoke = new LinkedList<>();
         Iterator<Long> regenTimeIterator = regenSortedByTime.keySet().iterator();
@@ -102,40 +89,39 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         }
 
         operationsToInvoke.stream().filter(EntityRef::exists).forEach(regenEntity -> {
-            final RegenComponent regenComponent =
-                    regenEntity.getComponent(RegenComponent.class);
-            final HealthComponent health = regenEntity.getComponent(HealthComponent.class);
-
-            // If there is a RegenComponent, proceed.
-            if (regenComponent != null && health != null) {
-                // regen, happening every 1/RegenRate sec.
-                if (health.currentHealth < health.maxHealth) {
-                    health.currentHealth += 1;
-                    regenEntity.saveComponent(regenComponent);
-                    logger.warn("regend " + health.currentHealth);
-                    if (health.currentHealth == health.maxHealth) {
-                        regenEntity.send(new OnFullyHealedEvent(regenEntity));
-                    }
-                }
-                // update nextRegenTick
-                regenComponent.nextRegenTick = regenComponent.nextRegenTick + (long) (1000 / regenComponent.regenRate);
-                // Update regenSortedByTime to have next tick
-                regenSortedByTime.put(regenComponent.nextRegenTick, regenEntity);
-                // save regenComp
-                regenEntity.saveComponent(health);
-            }
+            // get next endTime and new calculated value, add to regenSortedByTime map
         });
+
+        regenerate();
+    }
+
+    private void regenerate() {
+        // use regenSortedByTime to regenerate entities
     }
 
     @ReceiveEvent
-    public void onRegenComponentAdded(OnActivatedComponent event, EntityRef entity, RegenComponent regen,
-                                      HealthComponent health) {
-        regenSortedByTime.put((long) (regen.nextRegenTick + (regen.waitBeforeRegen * 1000)), entity);
+    public void onRegenAdded(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
+                             HealthComponent health) {
+        addRegenToScheduler(event, entity, regen, health);
     }
 
     @ReceiveEvent
-    public void onRegenComponentRemoved(BeforeDeactivateComponent event, EntityRef entity, RegenComponent regen,
-                                        HealthComponent health) {
-        regenSortedByTime.remove(regen.nextRegenTick, entity);
+    public void onRegenAddedWithoutComponent(ActivateRegenEvent event, EntityRef entity, HealthComponent health) {
+        RegenComponent regen = new RegenComponent();
+        regen.lowestEndTime = Long.MAX_VALUE;
+        entity.addComponent(regen);
+        addRegenToScheduler(event, entity, regen, health);
     }
+
+    private void addRegenToScheduler(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
+                                     HealthComponent health) {
+        if (event.id.equals("baseRegen")) {
+            // setting endTime to MAX_VALUE because natural regen happens till entity fully regenerates
+            regen.addRegen(event.id, health.regenRate, Long.MAX_VALUE);
+        } else {
+            regen.addRegen(event.id, event.value, (long) (event.endTime * 1000));
+        }
+        regenSortedByTime.put(regen.getLowestEndTime(), entity);
+    }
+
 }

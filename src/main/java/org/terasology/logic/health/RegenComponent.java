@@ -18,15 +18,38 @@ package org.terasology.logic.health;
 import org.terasology.entitySystem.Component;
 import org.terasology.network.Replicate;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class RegenComponent implements Component {
-    /** Amount of health restored in each regeneration tick. */
-    @Replicate
-    public float regenRate;
+    private Map<String, Float> regenValue = new HashMap<>();
+    private Map<String, Long> regenEndTime = new HashMap<>();
+    public long lowestEndTime;
 
-    /** Time delay before regeneration starts. */
-    @Replicate
-    public float waitBeforeRegen;
+    public Long findLowestEndTime() {
+        long result = Long.MAX_VALUE;
+        for (long value : regenEndTime.values()) {
+            result = Math.min(result, value);
+        }
+        return lowestEndTime;
+    }
 
-    /** Next tick time that will trigger regeneration. */
-    public long nextRegenTick;
+    public long getLowestEndTime() {
+        return lowestEndTime;
+    }
+
+    public void addRegen(String id, float value, long endTime) {
+        regenValue.put(id, value);
+        regenEndTime.put(id, endTime);
+        lowestEndTime = Math.min(lowestEndTime, endTime);
+    }
+
+    public void removeRegen(String id) {
+        final Long removedEndTime = regenEndTime.remove(id);
+        regenValue.remove(id);
+        if (removedEndTime == lowestEndTime) {
+            lowestEndTime = findLowestEndTime();
+        }
+    }
+
 }

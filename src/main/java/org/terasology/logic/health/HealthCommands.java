@@ -106,7 +106,7 @@ public class HealthCommands extends BaseComponentSystem {
             requiredPermission = PermissionManager.CHEAT_PERMISSION)
     public String setRegenRate(@Sender EntityRef client, @CommandParam("rate") float rate) {
         ClientComponent clientComp = client.getComponent(ClientComponent.class);
-        HealthComponent health= clientComp.character.getComponent(HealthComponent.class);
+        HealthComponent health = clientComp.character.getComponent(HealthComponent.class);
         float oldRegenRate = health.regenRate;
         if (health != null) {
             health.regenRate = rate;

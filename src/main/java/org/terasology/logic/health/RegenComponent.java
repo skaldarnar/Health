@@ -16,6 +16,7 @@
 package org.terasology.logic.health;
 
 import org.terasology.entitySystem.Component;
+import org.terasology.math.TeraMath;
 import org.terasology.network.Replicate;
 
 import java.util.HashMap;
@@ -50,6 +51,33 @@ public class RegenComponent implements Component {
         if (removedEndTime == lowestEndTime) {
             lowestEndTime = findLowestEndTime();
         }
+    }
+
+    public void removeCompleted(long currentTime) {
+        long endTime;
+        for (String id: regenEndTime.keySet()) {
+            endTime = regenEndTime.get(id);
+            if (endTime < currentTime) {
+                regenEndTime.remove(id);
+                regenValue.remove(id);
+            }
+        }
+        lowestEndTime = findLowestEndTime();
+    }
+
+    public boolean isEmpty() {
+        return regenValue.isEmpty();
+    }
+
+    public int getRegenValue() {
+        float totalValue = 0;
+        for (float value: regenValue.values()) {
+            totalValue += value;
+        }
+        if (totalValue < 0) {
+            totalValue = 0;
+        }
+        return TeraMath.floorToInt(totalValue);
     }
 
 }

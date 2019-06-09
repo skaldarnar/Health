@@ -258,8 +258,6 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
                 healthComponent.destroyEntityOnNoHealth = true;
 
                 blockEntity.addComponent(healthComponent);
-
-                // Add regen component in OnDamaged handler maybe?
             }
         }
     }

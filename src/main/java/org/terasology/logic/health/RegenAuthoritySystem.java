@@ -15,39 +15,42 @@
  */
 package org.terasology.logic.health;
 
+import com.google.common.collect.Ordering;
+import com.google.common.collect.SortedSetMultimap;
+import com.google.common.collect.TreeMultimap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
-import org.terasology.logic.health.event.BeforeRegenEvent;
+import org.terasology.logic.health.event.ActivateRegenEvent;
 import org.terasology.logic.health.event.OnFullyHealedEvent;
-import org.terasology.logic.health.event.OnRegenedEvent;
-import org.terasology.math.TeraMath;
 import org.terasology.registry.In;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This system handles the natural regeneration of entities with HealthComponent.
  *
- * Logic flow for Regen:
- * - BeforeRegenEvent
- * - (Health regenerated, HealthComponent saved)
- * - OnRegenedEvent
- * - OnFullyHealedEvent (if healed to full health)
-
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateSubscriberSystem {
+
+    private static final Logger logger = LoggerFactory.getLogger(RegenComponent.class);
+
+    // Stores when next to check for new value of regen, contains only entities which are being regenerated
+    private SortedSetMultimap<Long, EntityRef> regenSortedByTime = TreeMultimap.create(Ordering.natural(),
+            Ordering.arbitrary());
+
     /** Integer storing when to check each effect. */
     private static final int CHECK_INTERVAL = 100;
-
-    /** Integer storing when to apply regen health */
-    private static final int REGENERATION_TICK = 1000;
-
-    /** Last time the list of regen effects were checked. */
-    private long lastUpdated;
 
     @In
     private Time time;
@@ -63,64 +66,82 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     @Override
     public void update(float delta) {
         final long currentTime = time.getGameTimeInMs();
+        // Execute regen schedule
+        invokeRegenOperations(currentTime);
+    }
 
-        // If the current time passes the CHECK_INTERVAL threshold, regenerate.
-        if (currentTime >= lastUpdated + CHECK_INTERVAL) {
-            // Set the lastUpdated time to be the currentTime.
-            lastUpdated = currentTime;
+    private void invokeRegenOperations(long currentWorldTime) {
+        List<EntityRef> operationsToInvoke = new LinkedList<>();
+        Iterator<Long> regenTimeIterator = regenSortedByTime.keySet().iterator();
+        long processedTime;
+        while (regenTimeIterator.hasNext()) {
+            processedTime = regenTimeIterator.next();
+            if (processedTime > currentWorldTime) {
+                break;
+            }
+            operationsToInvoke.addAll(regenSortedByTime.get(processedTime));
+            regenTimeIterator.remove();
+        }
 
-            // For every entity with the health component, ignore if it is dead or maxHealth is reached
-            // check to see if they have passed a REGENERATION_TICK. If so, regenerate the applicable
-            // entities with the given regenAmount.
-            for (EntityRef entity : entityManager.getEntitiesWith(HealthComponent.class)) {
-                HealthComponent component = entity.getComponent(HealthComponent.class);
+        operationsToInvoke.stream().filter(EntityRef::exists).forEach(regenEntity -> {
+            RegenComponent regen = regenEntity.getComponent(RegenComponent.class);
+            regenSortedByTime.removeAll(regen.getLowestEndTime());
+            regen.removeCompleted(currentWorldTime);
+            if (regen.isEmpty()) {
+                regenEntity.removeComponent(RegenComponent.class);
+            } else {
+                regenEntity.saveComponent(regen);
+                regenSortedByTime.put(regen.getLowestEndTime(), regenEntity);
+            }
+        });
 
-                if (component.currentHealth <= 0) {
-                    continue;
+        regenerate(currentWorldTime);
+    }
+
+    private void regenerate(long currentTime) {
+        for (EntityRef entity: regenSortedByTime.values()) {
+            RegenComponent regen = entity.getComponent(RegenComponent.class);
+            HealthComponent health = entity.getComponent(HealthComponent.class);
+            if (health.nextRegenTick < currentTime) {
+                logger.warn("regenerating " + regen.getRegenValue());
+                health.currentHealth += regen.getRegenValue();
+                health.nextRegenTick = currentTime + 1000;
+                if (health.currentHealth >= health.maxHealth) {
+                    regenSortedByTime.remove(regen.getLowestEndTime(), entity);
+                    entity.removeComponent(RegenComponent.class);
+                    entity.send(new OnFullyHealedEvent(entity));
                 }
-
-                if (component.currentHealth == component.maxHealth || component.regenRate == 0) {
-                    continue;
-                }
-
-                long lastRegenTick = component.nextRegenTick - REGENERATION_TICK;
-                if (currentTime >= lastRegenTick + REGENERATION_TICK) {
-                    // Calculate this multiplier to account for time delays.
-                    int multiplier = (int) (currentTime - lastRegenTick) / REGENERATION_TICK;
-
-                    int amount = TeraMath.floorToInt(component.regenRate * multiplier);
-                    checkRegenerated(entity, component, amount);
-                }
+                entity.saveComponent(health);
             }
         }
     }
 
-    private void checkRegenerated(EntityRef entity, HealthComponent health, int healAmount) {
-        if (healAmount > 0) {
-            BeforeRegenEvent beforeRegen = entity.send(new BeforeRegenEvent(healAmount, entity));
-            if (!beforeRegen.isConsumed()) {
-                int modifiedAmount = TeraMath.floorToInt(beforeRegen.getResultValue());
-                if (modifiedAmount > 0) {
-                    doRegenerate(entity, modifiedAmount, entity);
-                }
-            }
-            entity.saveComponent(health);
-        }
+    @ReceiveEvent
+    public void onRegenAdded(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
+                             HealthComponent health) {
+        addRegenToScheduler(event, entity, regen, health);
     }
 
-    private void doRegenerate(EntityRef entity, int healAmount, EntityRef instigator) {
-        HealthComponent health = entity.getComponent(HealthComponent.class);
-        if (health != null) {
-            int cappedHealth = Math.min(health.currentHealth + healAmount, health.maxHealth);
-            int cappedHealAmount = cappedHealth - health.currentHealth;
-            health.currentHealth = cappedHealth;
-            health.nextRegenTick = time.getGameTimeInMs() + REGENERATION_TICK;
-            entity.saveComponent(health);
-            entity.send(new OnRegenedEvent(cappedHealAmount, entity));
-            if (health.currentHealth == health.maxHealth) {
-                entity.send(new OnFullyHealedEvent(instigator));
-            }
+    @ReceiveEvent
+    public void onRegenAddedWithoutComponent(ActivateRegenEvent event, EntityRef entity, HealthComponent health) {
+        RegenComponent regen = new RegenComponent();
+        regen.lowestEndTime = Long.MAX_VALUE;
+        entity.addComponent(regen);
+        addRegenToScheduler(event, entity, regen, health);
+    }
+
+    private void addRegenToScheduler(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
+                                     HealthComponent health) {
+        logger.warn("Regen added " + event.id);
+        if (event.id.equals("baseRegen")) {
+            // setting endTime to MAX_VALUE because natural regen happens till entity fully regenerates
+            regen.addRegen(event.id, health.regenRate, Long.MAX_VALUE);
+            regen.addRegen("wait", -health.regenRate,
+                    time.getGameTimeInMs() + (long) (health.waitBeforeRegen * 1000));
+        } else {
+            regen.addRegen(event.id, event.value, time.getGameTimeInMs() + (long) (event.endTime * 1000));
         }
+        regenSortedByTime.put(regen.getLowestEndTime(), entity);
     }
 
 }

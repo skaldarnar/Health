@@ -50,7 +50,10 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
             Ordering.arbitrary());
 
     /** Integer storing when to check each effect. */
-    private static final int CHECK_INTERVAL = 100;
+    private static final int CHECK_INTERVAL = 200;
+
+    /** Integer storing when to check each effect. */
+    private static long lastTick = 0;
 
     @In
     private Time time;
@@ -67,10 +70,14 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     public void update(float delta) {
         final long currentTime = time.getGameTimeInMs();
         // Execute regen schedule
-        invokeRegenOperations(currentTime);
+        if (currentTime > lastTick + CHECK_INTERVAL) {
+            invokeRegenOperations(currentTime);
+            lastTick = currentTime;
+        }
     }
 
     private void invokeRegenOperations(long currentWorldTime) {
+        // Contains all the entities with current time crossing EndTime
         List<EntityRef> operationsToInvoke = new LinkedList<>();
         Iterator<Long> regenTimeIterator = regenSortedByTime.keySet().iterator();
         long processedTime;
@@ -83,6 +90,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
             regenTimeIterator.remove();
         }
 
+        // Add new regen if present, or remove RegenComponent
         operationsToInvoke.stream().filter(EntityRef::exists).forEach(regenEntity -> {
             RegenComponent regen = regenEntity.getComponent(RegenComponent.class);
             regenSortedByTime.removeAll(regen.getLowestEndTime());
@@ -95,6 +103,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
             }
         });
 
+        // Regenerate the entities with EndTime greater than Current time
         regenerate(currentWorldTime);
     }
 
@@ -124,10 +133,12 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
 
     @ReceiveEvent
     public void onRegenAddedWithoutComponent(ActivateRegenEvent event, EntityRef entity, HealthComponent health) {
-        RegenComponent regen = new RegenComponent();
-        regen.lowestEndTime = Long.MAX_VALUE;
-        entity.addComponent(regen);
-        addRegenToScheduler(event, entity, regen, health);
+        if (!entity.hasComponent(RegenComponent.class)) {
+            RegenComponent regen = new RegenComponent();
+            regen.lowestEndTime = Long.MAX_VALUE;
+            entity.addComponent(regen);
+            addRegenToScheduler(event, entity, regen, health);
+        }
     }
 
     private void addRegenToScheduler(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,

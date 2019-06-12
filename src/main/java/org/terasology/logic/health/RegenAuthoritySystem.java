@@ -29,7 +29,9 @@ import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.health.event.ActivateRegenEvent;
+import org.terasology.logic.health.event.DeactivateRegenEvent;
 import org.terasology.logic.health.event.OnFullyHealedEvent;
+import org.terasology.protobuf.EntityData;
 import org.terasology.registry.In;
 
 import java.util.Iterator;
@@ -38,22 +40,24 @@ import java.util.List;
 
 /**
  * This system handles the natural regeneration of entities with HealthComponent.
- *
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateSubscriberSystem {
 
     private static final Logger logger = LoggerFactory.getLogger(RegenComponent.class);
+    /**
+     * Integer storing when to check each effect.
+     */
+    private static final int CHECK_INTERVAL = 200;
+
+    /**
+     * Integer storing when last time entities were regenerated.
+     */
+    private static long lastTick = 0;
 
     // Stores when next to check for new value of regen, contains only entities which are being regenerated
     private SortedSetMultimap<Long, EntityRef> regenSortedByTime = TreeMultimap.create(Ordering.natural(),
             Ordering.arbitrary());
-
-    /** Integer storing when to check each effect. */
-    private static final int CHECK_INTERVAL = 200;
-
-    /** Integer storing when to check each effect. */
-    private static long lastTick = 0;
 
     @In
     private Time time;
@@ -109,7 +113,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
 
     private void regenerate(long currentTime) {
         List<Long> regenToBeRemoved = new LinkedList<>();
-        for (EntityRef entity: regenSortedByTime.values()) {
+        for (EntityRef entity : regenSortedByTime.values()) {
             RegenComponent regen = entity.getComponent(RegenComponent.class);
             HealthComponent health = entity.getComponent(HealthComponent.class);
             if (health.nextRegenTick < currentTime) {
@@ -124,7 +128,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
                 entity.saveComponent(health);
             }
         }
-        for (Long endTime: regenToBeRemoved) {
+        for (Long endTime : regenToBeRemoved) {
             regenSortedByTime.removeAll(endTime);
         }
     }
@@ -132,6 +136,8 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     @ReceiveEvent
     public void onRegenAdded(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
                              HealthComponent health) {
+        // Remove previous scheduled regen, new will be added by addRegenToScheduler()
+        regenSortedByTime.remove(regen.getLowestEndTime(), entity);
         addRegenToScheduler(event, entity, regen, health);
     }
 
@@ -159,4 +165,20 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         regenSortedByTime.put(regen.getLowestEndTime(), entity);
     }
 
+    @ReceiveEvent
+    public void onRegenRemoved(DeactivateRegenEvent event, EntityRef entity, HealthComponent health,
+                               RegenComponent regen) {
+        regenSortedByTime.remove(regen.getLowestEndTime(), entity);
+        if (event.id.equals("all")) {
+            entity.removeComponent(RegenComponent.class);
+        } else {
+            regen.removeRegen(event.id);
+            if (event.id.equals("baseRegen")) {
+                regen.removeRegen("wait");
+            }
+            if (!regen.isEmpty()) {
+                regenSortedByTime.put(regen.getLowestEndTime(), entity);
+            }
+        }
+    }
 }

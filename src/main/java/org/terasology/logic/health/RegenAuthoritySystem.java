@@ -108,6 +108,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     }
 
     private void regenerate(long currentTime) {
+        List<Long> regenToBeRemoved = new LinkedList<>();
         for (EntityRef entity: regenSortedByTime.values()) {
             RegenComponent regen = entity.getComponent(RegenComponent.class);
             HealthComponent health = entity.getComponent(HealthComponent.class);
@@ -116,12 +117,15 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
                 health.currentHealth += regen.getRegenValue();
                 health.nextRegenTick = currentTime + 1000;
                 if (health.currentHealth >= health.maxHealth) {
-                    regenSortedByTime.remove(regen.getLowestEndTime(), entity);
+                    regenToBeRemoved.add(regen.getLowestEndTime());
                     entity.removeComponent(RegenComponent.class);
                     entity.send(new OnFullyHealedEvent(entity));
                 }
                 entity.saveComponent(health);
             }
+        }
+        for (Long endTime: regenToBeRemoved) {
+            regenSortedByTime.removeAll(endTime);
         }
     }
 

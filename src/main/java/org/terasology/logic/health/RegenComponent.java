@@ -25,7 +25,7 @@ import java.util.Map;
 public class RegenComponent implements Component {
     private Map<String, Float> regenValue = new HashMap<>();
     private Map<String, Long> regenEndTime = new HashMap<>();
-    float remiander;
+    private float remainder;
     public long lowestEndTime;
 
     public Long findLowestEndTime() {
@@ -71,14 +71,15 @@ public class RegenComponent implements Component {
     }
 
     public int getRegenValue() {
-        float totalValue = remiander;
+        float totalValue = remainder;
         for (float value: regenValue.values()) {
             totalValue += value;
         }
+        remainder = Math.min(1, remainder);
         totalValue = Math.max(0, totalValue);
         int returnValue =  TeraMath.floorToInt(totalValue);
         if (returnValue != totalValue) {
-            remiander += totalValue - returnValue;
+            remainder += totalValue - returnValue;
         }
         return returnValue;
     }

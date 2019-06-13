@@ -17,11 +17,13 @@ package org.terasology.logic.health.event;
 
 import org.terasology.entitySystem.event.Event;
 
+import static org.terasology.logic.health.RegenAuthoritySystem.BASE_REGEN;
+
 public class DeactivateRegenEvent implements Event {
     public String id;
 
     public DeactivateRegenEvent() {
-        id = "baseRegen";
+        id = BASE_REGEN;
     }
 
     public DeactivateRegenEvent(String id) {

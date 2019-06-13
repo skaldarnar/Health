@@ -33,6 +33,7 @@ import org.terasology.logic.health.event.DeactivateRegenEvent;
 import org.terasology.logic.health.event.OnFullyHealedEvent;
 import org.terasology.protobuf.EntityData;
 import org.terasology.registry.In;
+import org.terasology.world.generation.BaseFacetedWorldGenerator;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -43,6 +44,9 @@ import java.util.List;
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateSubscriberSystem {
+    public static final String ALL_REGEN = "all";
+    public static final String BASE_REGEN = "baseRegen";
+    public static final String WAIT = "wait";
 
     private static final Logger logger = LoggerFactory.getLogger(RegenComponent.class);
     /**
@@ -51,9 +55,9 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     private static final int CHECK_INTERVAL = 200;
 
     /**
-     * Integer storing when last time entities were regenerated.
+     * Long storing when entities are to be regenerated again.
      */
-    private static long lastTick = 0;
+    private static long nextTick;
 
     // Stores when next to check for new value of regen, contains only entities which are being regenerated
     private SortedSetMultimap<Long, EntityRef> regenSortedByTime = TreeMultimap.create(Ordering.natural(),
@@ -74,9 +78,9 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     public void update(float delta) {
         final long currentTime = time.getGameTimeInMs();
         // Execute regen schedule
-        if (currentTime > lastTick + CHECK_INTERVAL) {
+        if (currentTime > nextTick) {
             invokeRegenOperations(currentTime);
-            lastTick = currentTime;
+            nextTick = currentTime + CHECK_INTERVAL;
         }
     }
 
@@ -116,7 +120,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         for (EntityRef entity : regenSortedByTime.values()) {
             RegenComponent regen = entity.getComponent(RegenComponent.class);
             HealthComponent health = entity.getComponent(HealthComponent.class);
-            if (health.nextRegenTick < currentTime) {
+            if (health != null && health.nextRegenTick < currentTime) {
                 logger.warn("regenerating " + regen.getRegenValue());
                 health.currentHealth += regen.getRegenValue();
                 health.nextRegenTick = currentTime + 1000;
@@ -154,10 +158,10 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     private void addRegenToScheduler(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
                                      HealthComponent health) {
         logger.warn("Regen added " + event.id);
-        if (event.id.equals("baseRegen")) {
+        if (event.id.equals(BASE_REGEN)) {
             // setting endTime to MAX_VALUE because natural regen happens till entity fully regenerates
-            regen.addRegen(event.id, health.regenRate, Long.MAX_VALUE);
-            regen.addRegen("wait", -health.regenRate,
+            regen.addRegen(BASE_REGEN, health.regenRate, Long.MAX_VALUE);
+            regen.addRegen(WAIT, -health.regenRate,
                     time.getGameTimeInMs() + (long) (health.waitBeforeRegen * 1000));
         } else {
             regen.addRegen(event.id, event.value, time.getGameTimeInMs() + (long) (event.endTime * 1000));
@@ -169,12 +173,12 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     public void onRegenRemoved(DeactivateRegenEvent event, EntityRef entity, HealthComponent health,
                                RegenComponent regen) {
         regenSortedByTime.remove(regen.getLowestEndTime(), entity);
-        if (event.id.equals("all")) {
+        if (event.id.equals(ALL_REGEN)) {
             entity.removeComponent(RegenComponent.class);
         } else {
             regen.removeRegen(event.id);
-            if (event.id.equals("baseRegen")) {
-                regen.removeRegen("wait");
+            if (event.id.equals(BASE_REGEN)) {
+                regen.removeRegen(WAIT);
             }
             if (!regen.isEmpty()) {
                 regenSortedByTime.put(regen.getLowestEndTime(), entity);

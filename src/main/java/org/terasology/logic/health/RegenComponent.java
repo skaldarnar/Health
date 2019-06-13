@@ -75,13 +75,9 @@ public class RegenComponent implements Component {
         for (float value: regenValue.values()) {
             totalValue += value;
         }
-        remainder = Math.min(1, remainder);
         totalValue = Math.max(0, totalValue);
-        int returnValue =  TeraMath.floorToInt(totalValue);
-        if (returnValue != totalValue) {
-            remainder += totalValue - returnValue;
-        }
-        return returnValue;
+        remainder = totalValue % 1;
+        return TeraMath.floorToInt(totalValue);
     }
 
 }

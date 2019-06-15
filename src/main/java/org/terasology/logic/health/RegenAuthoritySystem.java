@@ -31,9 +31,7 @@ import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.health.event.ActivateRegenEvent;
 import org.terasology.logic.health.event.DeactivateRegenEvent;
 import org.terasology.logic.health.event.OnFullyHealedEvent;
-import org.terasology.protobuf.EntityData;
 import org.terasology.registry.In;
-import org.terasology.world.generation.BaseFacetedWorldGenerator;
 
 import java.util.Iterator;
 import java.util.LinkedList;

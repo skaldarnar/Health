@@ -17,16 +17,15 @@ package org.terasology.logic.health;
 
 import org.terasology.entitySystem.Component;
 import org.terasology.math.TeraMath;
-import org.terasology.network.Replicate;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class RegenComponent implements Component {
+    public long lowestEndTime;
     private Map<String, Float> regenValue = new HashMap<>();
     private Map<String, Long> regenEndTime = new HashMap<>();
     private float remainder;
-    public long lowestEndTime;
 
     public Long findLowestEndTime() {
         long result = Long.MAX_VALUE;
@@ -56,7 +55,7 @@ public class RegenComponent implements Component {
 
     public void removeCompleted(long currentTime) {
         long endTime;
-        for (String id: regenEndTime.keySet()) {
+        for (String id : regenEndTime.keySet()) {
             endTime = regenEndTime.get(id);
             if (endTime < currentTime) {
                 regenEndTime.remove(id);
@@ -72,7 +71,7 @@ public class RegenComponent implements Component {
 
     public int getRegenValue() {
         float totalValue = remainder;
-        for (float value: regenValue.values()) {
+        for (float value : regenValue.values()) {
             totalValue += value;
         }
         totalValue = Math.max(0, totalValue);

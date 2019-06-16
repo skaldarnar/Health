@@ -18,7 +18,6 @@ package org.terasology.logic.health;
 import com.google.api.client.util.Sets;
 import org.junit.Test;
 import org.terasology.engine.Time;
-import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.characters.events.AttackEvent;
 import org.terasology.math.geom.Vector3i;
@@ -36,7 +35,6 @@ import static org.junit.Assert.assertTrue;
 public class BlockTest extends ModuleTestingEnvironment {
     private static final Vector3i BLOCK_LOCATION = Vector3i.zero().add(Vector3i.down());
 
-    private EntityManager entityManager;
     private WorldProvider worldProvider;
     private Time time;
 
@@ -54,7 +52,6 @@ public class BlockTest extends ModuleTestingEnvironment {
     public void setup() throws Exception {
         super.setup();
 
-        entityManager = getHostContext().get(EntityManager.class);
         worldProvider = getHostContext().get(WorldProvider.class);
         time = getHostContext().get(Time.class);
 
@@ -76,11 +73,12 @@ public class BlockTest extends ModuleTestingEnvironment {
         // Attack on block, damage of 1 inflicted
         testBlockEntity.send(new AttackEvent(testBlockEntity, testBlockEntity));
 
-        // Make sure that the attack actually caused damage
+        // Make sure that the attack actually caused damage and started regen
         assertTrue(testBlockEntity.hasComponent(BlockDamagedComponent.class));
+        assertTrue(testBlockEntity.hasComponent(RegenComponent.class));
 
-        // Time for regen is 1 sec, 0.1 sec for processing buffer time
-        float regenTime = time.getGameTime() + 1 + 0.100f;
+        // Time for regen is 1 sec, 0.2 sec for processing buffer time
+        float regenTime = time.getGameTime() + 1 + 0.200f;
         runWhile(()-> time.getGameTime() <= regenTime);
 
         // On regen, health is fully restored, and BlockDamagedComponent is removed from the block

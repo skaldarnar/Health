@@ -18,8 +18,6 @@ package org.terasology.logic.health;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
@@ -46,7 +44,6 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     public static final String BASE_REGEN = "baseRegen";
     public static final String WAIT = "wait";
 
-    private static final Logger logger = LoggerFactory.getLogger(RegenComponent.class);
     /**
      * Integer storing when to check each effect.
      */
@@ -119,7 +116,6 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
             RegenComponent regen = entity.getComponent(RegenComponent.class);
             HealthComponent health = entity.getComponent(HealthComponent.class);
             if (health != null && health.nextRegenTick < currentTime) {
-                logger.warn("regenerating " + regen.getRegenValue());
                 health.currentHealth += regen.getRegenValue();
                 health.nextRegenTick = currentTime + 1000;
                 if (health.currentHealth >= health.maxHealth) {
@@ -157,7 +153,6 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
 
     private void addRegenToScheduler(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
                                      HealthComponent health) {
-        logger.warn("Regen added " + event.id);
         if (event.id.equals(BASE_REGEN)) {
             // setting endTime to MAX_VALUE because natural regen happens till entity fully regenerates
             regen.addRegen(BASE_REGEN, health.regenRate, Long.MAX_VALUE);

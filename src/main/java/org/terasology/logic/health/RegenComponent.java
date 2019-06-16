@@ -21,6 +21,8 @@ import org.terasology.math.TeraMath;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.terasology.logic.health.RegenAuthoritySystem.BASE_REGEN;
+
 public class RegenComponent implements Component {
     public long lowestEndTime;
     private Map<String, Float> regenValue = new HashMap<>();
@@ -79,4 +81,7 @@ public class RegenComponent implements Component {
         return TeraMath.floorToInt(totalValue);
     }
 
+    public boolean hasBaseRegenOnly() {
+        return (regenValue.size() == 1) && (regenValue.containsKey(BASE_REGEN));
+    }
 }

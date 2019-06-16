@@ -124,7 +124,9 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
                 health.nextRegenTick = currentTime + 1000;
                 if (health.currentHealth >= health.maxHealth) {
                     regenToBeRemoved.add(regen.getLowestEndTime());
-                    entity.removeComponent(RegenComponent.class);
+                    if (regen.hasBaseRegenOnly()) {
+                        entity.removeComponent(RegenComponent.class);
+                    }
                     entity.send(new OnFullyHealedEvent(entity));
                 }
                 entity.saveComponent(health);

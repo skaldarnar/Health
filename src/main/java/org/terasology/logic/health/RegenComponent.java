@@ -51,18 +51,6 @@ public class RegenComponent implements Component {
         }
     }
 
-    public void removeCompleted(long currentTime) {
-        long endTime;
-        for (String id : regenEndTime.keySet()) {
-            endTime = regenEndTime.get(id);
-            if (endTime < currentTime) {
-                regenEndTime.remove(id);
-                regenValue.remove(id);
-            }
-        }
-        soonestEndTime = findSoonestEndTime();
-    }
-
     public int getRegenValue() {
         float totalValue = remainder;
         for (float value : regenValue.values()) {

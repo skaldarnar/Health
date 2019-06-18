@@ -97,7 +97,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         operationsToInvoke.stream().filter(EntityRef::exists).forEach(regenEntity -> {
             RegenComponent regen = regenEntity.getComponent(RegenComponent.class);
             regenSortedByTime.removeAll(regen.soonestEndTime);
-            regen.removeCompleted(currentWorldTime);
+            removeCompleted(currentWorldTime, regen);
             if (regen.regenValue.isEmpty()) {
                 regenEntity.removeComponent(RegenComponent.class);
             } else {
@@ -132,6 +132,19 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
             regenSortedByTime.removeAll(endTime);
         }
     }
+
+    private void removeCompleted(long currentTime, RegenComponent regen) {
+        long endTime;
+        for (String id : regen.regenEndTime.keySet()) {
+            endTime = regen.regenEndTime.get(id);
+            if (endTime < currentTime) {
+                regen.regenEndTime.remove(id);
+                regen.regenValue.remove(id);
+            }
+        }
+        regen.soonestEndTime = regen.findSoonestEndTime();
+    }
+
 
     @ReceiveEvent
     public void onRegenAdded(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,

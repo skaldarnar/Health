@@ -24,34 +24,30 @@ import java.util.Map;
 import static org.terasology.logic.health.RegenAuthoritySystem.BASE_REGEN;
 
 public class RegenComponent implements Component {
-    public long lowestEndTime;
-    private Map<String, Float> regenValue = new HashMap<>();
-    private Map<String, Long> regenEndTime = new HashMap<>();
-    private float remainder;
+    public long soonestEndTime;
+    public Map<String, Float> regenValue = new HashMap<>();
+    public Map<String, Long> regenEndTime = new HashMap<>();
+    public float remainder;
 
-    public Long findLowestEndTime() {
+    public Long findSoonestEndTime() {
         long result = Long.MAX_VALUE;
         for (long value : regenEndTime.values()) {
             result = Math.min(result, value);
         }
-        return lowestEndTime;
-    }
-
-    public long getLowestEndTime() {
-        return lowestEndTime;
+        return soonestEndTime;
     }
 
     public void addRegen(String id, float value, long endTime) {
         regenValue.put(id, value);
         regenEndTime.put(id, endTime);
-        lowestEndTime = Math.min(lowestEndTime, endTime);
+        soonestEndTime = Math.min(soonestEndTime, endTime);
     }
 
     public void removeRegen(String id) {
         final Long removedEndTime = regenEndTime.remove(id);
         regenValue.remove(id);
-        if (removedEndTime == lowestEndTime) {
-            lowestEndTime = findLowestEndTime();
+        if (removedEndTime == soonestEndTime) {
+            soonestEndTime = findSoonestEndTime();
         }
     }
 
@@ -64,11 +60,7 @@ public class RegenComponent implements Component {
                 regenValue.remove(id);
             }
         }
-        lowestEndTime = findLowestEndTime();
-    }
-
-    public boolean isEmpty() {
-        return regenValue.isEmpty();
+        soonestEndTime = findSoonestEndTime();
     }
 
     public int getRegenValue() {

@@ -33,7 +33,7 @@ public class RestorationAuthoritySystem extends BaseComponentSystem {
 
     @ReceiveEvent
     public void onRestore(DoRestoreEvent event, EntityRef entity, HealthComponent health) {
-        BeforeRestoreEvent beforeRestoreEvent = entity.send(new BeforeRestoreEvent(event.getAmount(), event.getEntity()));
+        BeforeRestoreEvent beforeRestoreEvent = entity.send(new BeforeRestoreEvent(event.getAmount(), entity));
         if (!beforeRestoreEvent.isConsumed()) {
             int modifiedRestoreAmount = TeraMath.floorToInt(beforeRestoreEvent.getResultValue());
             if (modifiedRestoreAmount > 0) {

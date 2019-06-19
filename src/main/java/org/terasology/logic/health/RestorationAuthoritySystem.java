@@ -15,10 +15,49 @@
  */
 package org.terasology.logic.health;
 
+import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
+import org.terasology.logic.health.event.BeforeRestoreEvent;
+import org.terasology.logic.health.event.DoDamageEvent;
+import org.terasology.logic.health.event.DoRestoreEvent;
+import org.terasology.logic.health.event.OnFullyHealedEvent;
+import org.terasology.logic.health.event.OnRestoredEvent;
+import org.terasology.logic.players.event.OnPlayerRespawnedEvent;
+import org.terasology.math.TeraMath;
 
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class RestorationAuthoritySystem extends BaseComponentSystem {
+
+    @ReceiveEvent
+    public void onRestore(DoRestoreEvent event, EntityRef entity, HealthComponent health) {
+        BeforeRestoreEvent beforeRestoreEvent = entity.send(new BeforeRestoreEvent(event.getAmount(), event.getEntity()));
+        if (!beforeRestoreEvent.isConsumed()) {
+            int modifiedRestoreAmount = TeraMath.floorToInt(beforeRestoreEvent.getResultValue());
+            if (modifiedRestoreAmount > 0) {
+                restore(entity, health, modifiedRestoreAmount);
+            } else {
+                entity.send(new DoDamageEvent(-modifiedRestoreAmount));
+            }
+        }
+    }
+
+    private void restore(EntityRef entity, HealthComponent health, int restoreAmount) {
+        int cappedHealth = Math.min(health.maxHealth, health.currentHealth + restoreAmount);
+        int cappedRestoreAmount = cappedHealth - health.currentHealth;
+        health.currentHealth = cappedHealth;
+        entity.saveComponent(health);
+        entity.send(new OnRestoredEvent(cappedRestoreAmount, entity));
+        if (cappedHealth == health.maxHealth) {
+            entity.send(new OnFullyHealedEvent(entity));
+        }
+    }
+
+    @ReceiveEvent
+    public void onRespawn(OnPlayerRespawnedEvent event, EntityRef entity, HealthComponent healthComponent) {
+        healthComponent.currentHealth = healthComponent.maxHealth;
+        entity.saveComponent(healthComponent);
+    }
 }

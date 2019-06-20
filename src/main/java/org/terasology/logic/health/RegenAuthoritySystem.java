@@ -18,6 +18,8 @@ package org.terasology.logic.health;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
@@ -44,6 +46,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     public static final String BASE_REGEN = "baseRegen";
     public static final String WAIT = "wait";
 
+    private static final Logger logger = LoggerFactory.getLogger(RegenAuthoritySystem.class);
     /**
      * Integer storing when to check each effect.
      */
@@ -96,13 +99,15 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         // Add new regen if present, or remove RegenComponent
         operationsToInvoke.stream().filter(EntityRef::exists).forEach(regenEntity -> {
             RegenComponent regen = regenEntity.getComponent(RegenComponent.class);
-            regenSortedByTime.removeAll(regen.soonestEndTime);
+            regenSortedByTime.remove(regen.soonestEndTime, regenEntity);
             removeCompleted(currentWorldTime, regen);
             if (regen.regenValue.isEmpty()) {
+                logger.warn("regen removed " + regenEntity.getId());
                 regenEntity.removeComponent(RegenComponent.class);
             } else {
                 regenEntity.saveComponent(regen);
-                regenSortedByTime.put(regen.soonestEndTime, regenEntity);
+                regenSortedByTime.put(regen.findSoonestEndTime(), regenEntity);
+                logger.warn("regen updated1 " + regenEntity.getId() + " wake up at " + regen.findSoonestEndTime());
             }
         });
 
@@ -192,5 +197,6 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
                 regenSortedByTime.put(regen.soonestEndTime, entity);
             }
         }
+        logger.warn("regen added to schedule " + entity.getId() + " id " + event.id + " wake: " + regen.soonestEndTime);
     }
 }

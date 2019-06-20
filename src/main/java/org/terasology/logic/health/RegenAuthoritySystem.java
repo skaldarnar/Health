@@ -33,9 +33,7 @@ import org.terasology.logic.health.event.DeactivateRegenEvent;
 import org.terasology.logic.health.event.OnFullyHealedEvent;
 import org.terasology.registry.In;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * This system handles the natural regeneration of entities with HealthComponent.
@@ -116,7 +114,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     }
 
     private void regenerate(long currentTime) {
-        List<Long> regenToBeRemoved = new LinkedList<>();
+        Map<EntityRef, Long> regenToBeRemoved = new HashMap<>();
         for (EntityRef entity : regenSortedByTime.values()) {
             RegenComponent regen = entity.getComponent(RegenComponent.class);
             HealthComponent health = entity.getComponent(HealthComponent.class);
@@ -124,7 +122,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
                 health.currentHealth += regen.getRegenValue();
                 health.nextRegenTick = currentTime + 1000;
                 if (health.currentHealth >= health.maxHealth) {
-                    regenToBeRemoved.add(regen.soonestEndTime);
+                    regenToBeRemoved.put(entity, regen.soonestEndTime);
                     if (regen.hasBaseRegenOnly()) {
                         entity.removeComponent(RegenComponent.class);
                     }
@@ -133,8 +131,8 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
                 entity.saveComponent(health);
             }
         }
-        for (Long endTime : regenToBeRemoved) {
-            regenSortedByTime.removeAll(endTime);
+        for (EntityRef entity : regenToBeRemoved.keySet()) {
+            regenSortedByTime.remove(regenToBeRemoved.get(entity), entity);
         }
     }
 

@@ -97,7 +97,7 @@ public class RegenTest extends ModuleTestingEnvironment {
     @Test
     public void multipleRegenTest() {
         HealthComponent healthComponent = new HealthComponent();
-        healthComponent.currentHealth = 100;
+        healthComponent.currentHealth = 10;
         healthComponent.maxHealth = 100;
         healthComponent.waitBeforeRegen = 1;
         healthComponent.regenRate = 1;
@@ -109,11 +109,13 @@ public class RegenTest extends ModuleTestingEnvironment {
         player.send(new ActivateRegenEvent("Potion#1", 5, 5));
         player.send(new ActivateRegenEvent("Potion#2", 2, 10));
 
-        assertEquals(7, player.getComponent(RegenComponent.class).getRegenValue());
+        RegenComponent regen = player.getComponent(RegenComponent.class);
+        assertEquals(7, regen.getRegenValue());
 
-        float tick = time.getGameTime() + 5 + 0.200f;
+        float tick = time.getGameTime() + 6 + 0.200f;
         runWhile(()-> time.getGameTime() <= tick);
 
-        assertEquals(2, player.getComponent(RegenComponent.class).getRegenValue());
+        regen = player.getComponent(RegenComponent.class);
+        assertEquals(2, regen.getRegenValue());
     }
 }

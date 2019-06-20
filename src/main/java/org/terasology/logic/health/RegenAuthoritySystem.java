@@ -33,7 +33,11 @@ import org.terasology.logic.health.event.DeactivateRegenEvent;
 import org.terasology.logic.health.event.OnFullyHealedEvent;
 import org.terasology.registry.In;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This system handles the natural regeneration of entities with HealthComponent.
@@ -140,7 +144,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         long endTime;
         for (String id : regen.regenEndTime.keySet()) {
             endTime = regen.regenEndTime.get(id);
-            if (endTime < currentTime) {
+            if (endTime <= currentTime) {
                 regen.regenEndTime.remove(id);
                 regen.regenValue.remove(id);
             }

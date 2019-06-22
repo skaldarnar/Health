@@ -24,7 +24,7 @@ import org.terasology.entitySystem.event.Event;
 public class DoRestoreEvent implements Event {
     /** The amount of health points being restored. */
     private int amount;
-    /** The instigator of restoration */
+    /** The entity that caused the restoration */
     private EntityRef instigator;
 
     public DoRestoreEvent(int amount) {

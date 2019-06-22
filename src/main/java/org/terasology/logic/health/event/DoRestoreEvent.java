@@ -27,10 +27,6 @@ public class DoRestoreEvent implements Event {
     /** The instigator of restoration */
     private EntityRef instigator;
 
-    /**
-     * Constructor for event providing amount of restoration.
-     * @param amount    The amount of restoration.
-     */
     public DoRestoreEvent(int amount) {
         this(amount, EntityRef.NULL);
     }
@@ -40,18 +36,10 @@ public class DoRestoreEvent implements Event {
         this.instigator = entity;
     }
 
-    /**
-     * Method to get the amount of restoration.
-     * @return amount of regeneration.
-     */
     public int getAmount() {
         return amount;
     }
 
-    /**
-     * Method to get the instigator of restoration.
-     * @return EntityRef of instigator.
-     */
     public EntityRef getInstigator() {
         return instigator;
     }

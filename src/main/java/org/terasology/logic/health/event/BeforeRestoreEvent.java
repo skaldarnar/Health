@@ -27,21 +27,11 @@ public class BeforeRestoreEvent extends AbstractConsumableValueModifiableEvent {
     /** The entity which is being restored. */
     private EntityRef entity;
 
-    /**
-     * Constructor to create a new BeforeRestoreEvent.
-     *
-     * @param amount    The amount by which the entity is restored.
-     * @param entity    The entity which is being restored.
-     */
     public BeforeRestoreEvent(int amount, EntityRef entity) {
         super(amount);
         this.entity = entity;
     }
 
-    /**
-     * Method to get the EntityRef of entity being restored.
-     * @return Entity being restored.
-     */
     public EntityRef getEntity() {
         return entity;
     }

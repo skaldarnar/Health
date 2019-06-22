@@ -15,6 +15,7 @@
  */
 package org.terasology.logic.health.event;
 
+import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.entitySystem.event.Event;
 
 /**
@@ -23,13 +24,20 @@ import org.terasology.entitySystem.event.Event;
 public class DoRestoreEvent implements Event {
     /** The amount of health points being restored. */
     private int amount;
+    /** The instigator of restoration */
+    private EntityRef instigator;
 
     /**
      * Constructor for event providing amount of restoration.
      * @param amount    The amount of restoration.
      */
     public DoRestoreEvent(int amount) {
+        this(amount, EntityRef.NULL);
+    }
+
+    public DoRestoreEvent(int amount, EntityRef entity) {
         this.amount = amount;
+        this.instigator = entity;
     }
 
     /**
@@ -38,5 +46,13 @@ public class DoRestoreEvent implements Event {
      */
     public int getAmount() {
         return amount;
+    }
+
+    /**
+     * Method to get the instigator of restoration.
+     * @return EntityRef of instigator.
+     */
+    public EntityRef getInstigator() {
+        return instigator;
     }
 }

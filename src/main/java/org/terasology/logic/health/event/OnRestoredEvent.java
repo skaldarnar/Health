@@ -17,14 +17,29 @@ package org.terasology.logic.health.event;
 
 import org.terasology.entitySystem.entity.EntityRef;
 
+/**
+ * This event is sent after the entity is restored. Final event of restoration logic.
+ */
 public class OnRestoredEvent extends HealthChangedEvent {
+    /**
+     * The amount by which the entity is restored.
+     */
     private int amount;
 
+    /**
+     * Constructor for creating the event.
+     * @param amount        The amount of restoration.
+     * @param instigator    EntityRef of cause of restoration.
+     */
     public OnRestoredEvent(int amount, EntityRef instigator) {
         super(instigator, amount);
         this.amount = amount;
     }
 
+    /**
+     * Method to get the amount of restoration.
+     * @return amount of restoration.
+     */
     public int getRegenAmount() {
         return amount;
     }

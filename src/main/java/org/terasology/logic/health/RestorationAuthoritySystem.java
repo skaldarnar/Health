@@ -28,6 +28,17 @@ import org.terasology.logic.health.event.OnRestoredEvent;
 import org.terasology.logic.players.event.OnPlayerRespawnedEvent;
 import org.terasology.math.TeraMath;
 
+/**
+ * This system takes care of restoration of entities with HealthComponent.
+ * To increase the health of an entity, send DoRestoreEvent
+ * <p>
+ * Logic flow for restoration:
+ * - DoRestoreEvent
+ * - BeforeRestoreEvent
+ * - (HealthComponent saved)
+ * - OnRestoredEvent
+ * - OnFullyHealedEvent (if healed to full health)
+ */
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class RestorationAuthoritySystem extends BaseComponentSystem {
 
@@ -39,7 +50,8 @@ public class RestorationAuthoritySystem extends BaseComponentSystem {
             if (modifiedRestoreAmount > 0) {
                 restore(entity, health, modifiedRestoreAmount);
             } else {
-                entity.send(new DoDamageEvent(-modifiedRestoreAmount));
+                // Cause "healing" damage to entity if modified value of restoration is negative
+                entity.send(new DoDamageEvent(-modifiedRestoreAmount, EngineDamageTypes.HEALING.get()));
             }
         }
     }

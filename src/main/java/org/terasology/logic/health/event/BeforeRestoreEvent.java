@@ -24,7 +24,7 @@ import org.terasology.entitySystem.event.AbstractConsumableValueModifiableEvent;
  * Modifications are accumulated as modifiers (additions), multipliers and postModifiers (additions after multipliers).
  */
 public class BeforeRestoreEvent extends AbstractConsumableValueModifiableEvent {
-    /** The entity which is being regenerated. */
+    /** The entity which is being restored. */
     private EntityRef entity;
 
     /**

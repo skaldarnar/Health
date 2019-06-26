@@ -21,7 +21,7 @@ import static org.terasology.logic.health.RegenAuthoritySystem.BASE_REGEN;
 
 public class ActivateRegenEvent implements Event {
     public String id;
-    public int value;
+    public float value;
     public float endTime;
 
     public ActivateRegenEvent() {
@@ -29,7 +29,7 @@ public class ActivateRegenEvent implements Event {
         endTime = 0;
     }
 
-    public ActivateRegenEvent(String id, int value, float endTime) {
+    public ActivateRegenEvent(String id, float value, float endTime) {
         this.id = id;
         this.value = value;
         this.endTime = endTime;

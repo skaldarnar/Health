@@ -68,6 +68,13 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     @In
     private EntityManager entityManager;
 
+    public void postBegin() {
+        for (EntityRef entity : entityManager.getEntitiesWith(RegenComponent.class)) {
+            logger.warn("Regen entity found " + entity.getId());
+            regenSortedByTime.put(entity.getComponent(RegenComponent.class).soonestEndTime, entity);
+        }
+    }
+
     /**
      * For every update, check to see if the time's been over the CHECK_INTERVAL. If so, verify if a REGENERATION_TICK
      * has passed for every regeneration effect.

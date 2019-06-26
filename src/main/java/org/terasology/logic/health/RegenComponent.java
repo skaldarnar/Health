@@ -17,6 +17,7 @@ package org.terasology.logic.health;
 
 import org.terasology.entitySystem.Component;
 import org.terasology.math.TeraMath;
+import org.terasology.network.Replicate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,9 +25,13 @@ import java.util.Map;
 import static org.terasology.logic.health.RegenAuthoritySystem.BASE_REGEN;
 
 public class RegenComponent implements Component {
+    @Replicate
     public long soonestEndTime;
+    @Replicate
     public Map<String, Float> regenValue = new HashMap<>();
+    @Replicate
     public Map<String, Long> regenEndTime = new HashMap<>();
+    @Replicate
     public float remainder;
 
     public Long findSoonestEndTime() {

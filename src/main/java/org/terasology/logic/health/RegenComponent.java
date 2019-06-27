@@ -37,6 +37,9 @@ public class RegenComponent implements Component {
     public Long findSoonestEndTime() {
         long result = Long.MAX_VALUE;
         for (long value : regenEndTime.values()) {
+            if (value == -1) {
+                continue;
+            }
             result = Math.min(result, value);
         }
         return result;
@@ -45,7 +48,9 @@ public class RegenComponent implements Component {
     public void addRegen(String id, float value, long endTime) {
         regenValue.put(id, value);
         regenEndTime.put(id, endTime);
-        soonestEndTime = Math.min(soonestEndTime, endTime);
+        if (endTime > 0) {
+            soonestEndTime = Math.min(soonestEndTime, endTime);
+        }
     }
 
     public void removeRegen(String id) {

@@ -92,6 +92,9 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         long processedTime;
         while (regenTimeIterator.hasNext()) {
             processedTime = regenTimeIterator.next();
+            if (processedTime == -1) {
+                continue;
+            }
             if (processedTime > currentWorldTime) {
                 break;
             }
@@ -171,7 +174,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     public void onRegenAddedWithoutComponent(ActivateRegenEvent event, EntityRef entity, HealthComponent health) {
         if (!entity.hasComponent(RegenComponent.class)) {
             RegenComponent regen = new RegenComponent();
-            regen.soonestEndTime = Long.MAX_VALUE;
+            regen.soonestEndTime = -1;
             addRegenToScheduler(event, entity, regen, health);
             entity.addComponent(regen);
         }
@@ -180,8 +183,8 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     private void addRegenToScheduler(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
                                      HealthComponent health) {
         if (event.id.equals(BASE_REGEN)) {
-            // setting endTime to MAX_VALUE because natural regen happens till entity fully regenerates
-            regen.addRegen(BASE_REGEN, health.regenRate, Long.MAX_VALUE);
+            // setting endTime to -1 because natural regen happens till entity fully regenerates
+            regen.addRegen(BASE_REGEN, health.regenRate, -1);
             regen.addRegen(WAIT, -health.regenRate,
                     time.getGameTimeInMs() + (long) (health.waitBeforeRegen * 1000));
         } else {

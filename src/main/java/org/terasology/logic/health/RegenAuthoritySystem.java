@@ -174,7 +174,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     public void onRegenAddedWithoutComponent(ActivateRegenEvent event, EntityRef entity, HealthComponent health) {
         if (!entity.hasComponent(RegenComponent.class)) {
             RegenComponent regen = new RegenComponent();
-            regen.soonestEndTime = -1;
+            regen.soonestEndTime = Long.MAX_VALUE;
             addRegenToScheduler(event, entity, regen, health);
             entity.addComponent(regen);
         }

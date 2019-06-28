@@ -24,6 +24,7 @@ import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.health.event.BeforeRestoreEvent;
 import org.terasology.logic.health.event.DoRestoreEvent;
+import org.terasology.logic.health.event.RestoreFullHealthEvent;
 import org.terasology.logic.players.PlayerCharacterComponent;
 import org.terasology.moduletestingenvironment.ModuleTestingEnvironment;
 import org.terasology.moduletestingenvironment.TestEventReceiver;
@@ -139,6 +140,21 @@ public class RestoreTest extends ModuleTestingEnvironment {
         player.send(new DoRestoreEvent(-10));
         // Negative base restore value is ignored in the Restoration system
         assertEquals(50, player.getComponent(HealthComponent.class).currentHealth);
+    }
+
+    @Test
+    public void restoreFullHealthTest() {
+        HealthComponent healthComponent = new HealthComponent();
+        healthComponent.currentHealth = 50;
+        healthComponent.maxHealth = 100;
+
+        final EntityRef player = entityManager.create();
+        player.addComponent(new PlayerCharacterComponent());
+        player.addComponent(healthComponent);
+
+        player.send(new RestoreFullHealthEvent(player));
+
+        assertEquals(100, player.getComponent(HealthComponent.class).currentHealth);
     }
 
 }

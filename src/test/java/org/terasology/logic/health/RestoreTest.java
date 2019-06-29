@@ -22,10 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.logic.health.event.BeforeHealEvent;
-import org.terasology.logic.health.event.DoDamageEvent;
-import org.terasology.logic.health.event.DoHealEvent;
-import org.terasology.logic.health.event.OnDamagedEvent;
+import org.terasology.logic.health.event.BeforeRestoreEvent;
+import org.terasology.logic.health.event.DoRestoreEvent;
+import org.terasology.logic.health.event.RestoreFullHealthEvent;
 import org.terasology.logic.players.PlayerCharacterComponent;
 import org.terasology.moduletestingenvironment.ModuleTestingEnvironment;
 import org.terasology.moduletestingenvironment.TestEventReceiver;
@@ -36,11 +35,11 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 import java.util.Set;
 
-public class HealEventTest extends ModuleTestingEnvironment {
+public class RestoreTest extends ModuleTestingEnvironment {
 
     private EntityManager entityManager;
 
-    private static final Logger logger = LoggerFactory.getLogger(HealEventTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(RestoreTest.class);
 
     @Override
     public Set<String> getDependencies() {
@@ -55,7 +54,7 @@ public class HealEventTest extends ModuleTestingEnvironment {
     }
 
     @Test
-    public void healTest() {
+    public void restoreTest() {
         HealthComponent healthComponent = new HealthComponent();
         healthComponent.currentHealth = 0;
         healthComponent.maxHealth = 100;
@@ -64,17 +63,17 @@ public class HealEventTest extends ModuleTestingEnvironment {
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
 
-        player.send(new DoHealEvent(10));
+        player.send(new DoRestoreEvent(10));
         assertEquals(player.getComponent(HealthComponent.class).currentHealth, 10);
 
-        player.send(new DoHealEvent(999));
+        player.send(new DoRestoreEvent(999));
         assertEquals(player.getComponent(HealthComponent.class).currentHealth, 100);
     }
 
     @Test
-    public void healEventSentTest() {
-        TestEventReceiver<BeforeHealEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeHealEvent.class);
-        List<BeforeHealEvent> list = receiver.getEvents();
+    public void restoreEventSentTest() {
+        TestEventReceiver<BeforeRestoreEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeRestoreEvent.class);
+        List<BeforeRestoreEvent> list = receiver.getEvents();
         assertTrue(list.isEmpty());
 
         HealthComponent healthComponent = new HealthComponent();
@@ -85,12 +84,12 @@ public class HealEventTest extends ModuleTestingEnvironment {
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
 
-        player.send(new DoHealEvent(10));
+        player.send(new DoRestoreEvent(10));
         assertEquals(1, list.size());
     }
 
     @Test
-    public void healEventCancelTest() {
+    public void restoreEventCancelTest() {
         HealthComponent healthComponent = new HealthComponent();
         healthComponent.currentHealth = 0;
         healthComponent.maxHealth = 100;
@@ -99,16 +98,16 @@ public class HealEventTest extends ModuleTestingEnvironment {
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
 
-        TestEventReceiver<BeforeHealEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeHealEvent.class,
+        TestEventReceiver<BeforeRestoreEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeRestoreEvent.class,
         (event, entity) -> {
             event.consume();
         });
-        player.send(new DoHealEvent(10));
+        player.send(new DoRestoreEvent(10));
         assertEquals(0, player.getComponent(HealthComponent.class).currentHealth);
     }
 
     @Test
-    public void healModifyEventTest() {
+    public void restoreModifyEventTest() {
         HealthComponent healthComponent = new HealthComponent();
         healthComponent.currentHealth = 0;
         healthComponent.maxHealth = 100;
@@ -117,19 +116,19 @@ public class HealEventTest extends ModuleTestingEnvironment {
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
 
-        TestEventReceiver<BeforeHealEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeHealEvent.class,
+        TestEventReceiver<BeforeRestoreEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeRestoreEvent.class,
                 (event, entity) -> {
                     event.add(10);
-                    event.subtract(5);
+                    event.add(-5);
                     event.multiply(2);
                 });
         // Expected value is ( initial:10 + 10 - 5 ) * 2 == 30
-        player.send(new DoHealEvent(10));
+        player.send(new DoRestoreEvent(10));
         assertEquals(30, player.getComponent(HealthComponent.class).currentHealth);
     }
 
     @Test
-    public void healNegativeTest() {
+    public void restoreNegativeTest() {
         HealthComponent healthComponent = new HealthComponent();
         healthComponent.currentHealth = 50;
         healthComponent.maxHealth = 100;
@@ -138,12 +137,24 @@ public class HealEventTest extends ModuleTestingEnvironment {
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
 
-        TestEventReceiver<OnDamagedEvent> receiver = new TestEventReceiver<>(getHostContext(), OnDamagedEvent.class);
-        List<OnDamagedEvent> list = receiver.getEvents();
+        player.send(new DoRestoreEvent(-10));
+        // Negative base restore value is ignored in the Restoration system
+        assertEquals(50, player.getComponent(HealthComponent.class).currentHealth);
+    }
 
-        player.send(new DoHealEvent(-10));
-        //assertEquals(1, list.size());
-        assertEquals(40, player.getComponent(HealthComponent.class).currentHealth);
+    @Test
+    public void restoreFullHealthTest() {
+        HealthComponent healthComponent = new HealthComponent();
+        healthComponent.currentHealth = 50;
+        healthComponent.maxHealth = 100;
+
+        final EntityRef player = entityManager.create();
+        player.addComponent(new PlayerCharacterComponent());
+        player.addComponent(healthComponent);
+
+        player.send(new RestoreFullHealthEvent(player));
+
+        assertEquals(100, player.getComponent(HealthComponent.class).currentHealth);
     }
 
 }

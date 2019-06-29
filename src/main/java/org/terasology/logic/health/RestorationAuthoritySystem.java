@@ -25,6 +25,7 @@ import org.terasology.logic.health.event.DoDamageEvent;
 import org.terasology.logic.health.event.DoRestoreEvent;
 import org.terasology.logic.health.event.OnFullyHealedEvent;
 import org.terasology.logic.health.event.OnRestoredEvent;
+import org.terasology.logic.health.event.RestoreFullHealthEvent;
 import org.terasology.logic.players.event.OnPlayerRespawnedEvent;
 import org.terasology.math.TeraMath;
 
@@ -68,7 +69,16 @@ public class RestorationAuthoritySystem extends BaseComponentSystem {
     }
 
     @ReceiveEvent
+    public void onRestoreFullHealthEvent(RestoreFullHealthEvent event, EntityRef entity, HealthComponent health) {
+        restoreFullHealth(entity, health);
+    }
+
+    @ReceiveEvent
     public void onRespawn(OnPlayerRespawnedEvent event, EntityRef entity, HealthComponent healthComponent) {
+        restoreFullHealth(entity, healthComponent);
+    }
+
+    private void restoreFullHealth(EntityRef entity, HealthComponent healthComponent) {
         healthComponent.currentHealth = healthComponent.maxHealth;
         entity.saveComponent(healthComponent);
     }

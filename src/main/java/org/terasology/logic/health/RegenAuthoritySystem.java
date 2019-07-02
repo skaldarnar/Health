@@ -18,11 +18,10 @@ package org.terasology.logic.health;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
+import org.terasology.entitySystem.entity.lifecycleEvents.OnActivatedComponent;
 import org.terasology.entitySystem.event.ReceiveEvent;
 import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
@@ -48,7 +47,6 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     public static final String BASE_REGEN = "baseRegen";
     public static final String WAIT = "wait";
 
-    private static final Logger logger = LoggerFactory.getLogger(RegenAuthoritySystem.class);
     /**
      * Integer storing when to check each effect.
      */
@@ -91,6 +89,9 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         long processedTime;
         while (regenTimeIterator.hasNext()) {
             processedTime = regenTimeIterator.next();
+            if (processedTime == -1) {
+                continue;
+            }
             if (processedTime > currentWorldTime) {
                 break;
             }
@@ -104,12 +105,10 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
             regenSortedByTime.remove(regen.soonestEndTime, regenEntity);
             removeCompleted(currentWorldTime, regen);
             if (regen.regenValue.isEmpty()) {
-                logger.warn("regen removed " + regenEntity.getId());
                 regenEntity.removeComponent(RegenComponent.class);
             } else {
                 regenEntity.saveComponent(regen);
                 regenSortedByTime.put(regen.findSoonestEndTime(), regenEntity);
-                logger.warn("regen updated1 " + regenEntity.getId() + " wake up at " + regen.findSoonestEndTime());
             }
         });
 
@@ -140,14 +139,18 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         }
     }
 
-    private void removeCompleted(long currentTime, RegenComponent regen) {
-        long endTime;
+    private void removeCompleted(Long currentTime, RegenComponent regen) {
+        Long endTime;
+        List<String> toBeRemoved = new LinkedList<>();
         for (String id : regen.regenEndTime.keySet()) {
             endTime = regen.regenEndTime.get(id);
-            if (endTime <= currentTime) {
-                regen.regenEndTime.remove(id);
-                regen.regenValue.remove(id);
+            if (endTime != -1 && endTime <= currentTime) {
+                toBeRemoved.add(id);
             }
+        }
+        for (String id: toBeRemoved) {
+            regen.regenValue.remove(id);
+            regen.regenEndTime.remove(id);
         }
         regen.soonestEndTime = regen.findSoonestEndTime();
     }
@@ -159,6 +162,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         // Remove previous scheduled regen, new will be added by addRegenToScheduler()
         regenSortedByTime.remove(regen.soonestEndTime, entity);
         addRegenToScheduler(event, entity, regen, health);
+        regenSortedByTime.put(regen.soonestEndTime, entity);
     }
 
     @ReceiveEvent
@@ -166,21 +170,25 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         if (!entity.hasComponent(RegenComponent.class)) {
             RegenComponent regen = new RegenComponent();
             regen.soonestEndTime = Long.MAX_VALUE;
-            entity.addComponent(regen);
             addRegenToScheduler(event, entity, regen, health);
+            entity.addComponent(regen);
         }
     }
 
     private void addRegenToScheduler(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
                                      HealthComponent health) {
         if (event.id.equals(BASE_REGEN)) {
-            // setting endTime to MAX_VALUE because natural regen happens till entity fully regenerates
-            regen.addRegen(BASE_REGEN, health.regenRate, Long.MAX_VALUE);
+            // setting endTime to -1 because natural regen happens till entity fully regenerates
+            regen.addRegen(BASE_REGEN, health.regenRate, -1);
             regen.addRegen(WAIT, -health.regenRate,
                     time.getGameTimeInMs() + (long) (health.waitBeforeRegen * 1000));
         } else {
             regen.addRegen(event.id, event.value, time.getGameTimeInMs() + (long) (event.endTime * 1000));
         }
+    }
+
+    @ReceiveEvent
+    public void onRegenComponentAdded(OnActivatedComponent event, EntityRef entity, RegenComponent regen) {
         regenSortedByTime.put(regen.soonestEndTime, entity);
     }
 
@@ -199,6 +207,5 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
                 regenSortedByTime.put(regen.soonestEndTime, entity);
             }
         }
-        logger.warn("regen added to schedule " + entity.getId() + " id " + event.id + " wake: " + regen.soonestEndTime);
     }
 }

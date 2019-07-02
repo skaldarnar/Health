@@ -17,6 +17,7 @@ package org.terasology.logic.health;
 
 import org.terasology.entitySystem.Component;
 import org.terasology.math.TeraMath;
+import org.terasology.network.Replicate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,14 +25,21 @@ import java.util.Map;
 import static org.terasology.logic.health.RegenAuthoritySystem.BASE_REGEN;
 
 public class RegenComponent implements Component {
+    @Replicate
     public long soonestEndTime;
+    @Replicate
     public Map<String, Float> regenValue = new HashMap<>();
+    @Replicate
     public Map<String, Long> regenEndTime = new HashMap<>();
+    @Replicate
     public float remainder;
 
     public Long findSoonestEndTime() {
         long result = Long.MAX_VALUE;
         for (long value : regenEndTime.values()) {
+            if (value == -1) {
+                continue;
+            }
             result = Math.min(result, value);
         }
         return result;
@@ -40,7 +48,9 @@ public class RegenComponent implements Component {
     public void addRegen(String id, float value, long endTime) {
         regenValue.put(id, value);
         regenEndTime.put(id, endTime);
-        soonestEndTime = Math.min(soonestEndTime, endTime);
+        if (endTime > 0) {
+            soonestEndTime = Math.min(soonestEndTime, endTime);
+        }
     }
 
     public void removeRegen(String id) {

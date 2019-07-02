@@ -149,7 +149,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         List<String> toBeRemoved = new LinkedList<>();
         for (String id : regen.regenEndTime.keySet()) {
             endTime = regen.regenEndTime.get(id);
-            if ((endTime != -1) && (endTime <= currentTime)) {
+            if (endTime != -1 && endTime <= currentTime) {
                 toBeRemoved.add(id);
             }
         }
@@ -194,7 +194,6 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
 
     @ReceiveEvent
     public void onRegenComponentAdded(OnActivatedComponent event, EntityRef entity, RegenComponent regen) {
-        logger.warn("found regen getting added on " + entity.getId() + " " + regen.soonestEndTime + " " + time.getGameTimeInMs());
         regenSortedByTime.put(regen.soonestEndTime, entity);
     }
 

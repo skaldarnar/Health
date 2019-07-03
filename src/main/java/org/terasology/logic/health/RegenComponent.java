@@ -46,10 +46,12 @@ public class RegenComponent implements Component {
     }
 
     public void addRegen(String id, float value, long endTime) {
-        regenValue.put(id, value);
-        regenEndTime.put(id, endTime);
-        if (endTime > 0) {
-            soonestEndTime = Math.min(soonestEndTime, endTime);
+        if (value != 0) {
+            regenValue.put(id, value);
+            regenEndTime.put(id, endTime);
+            if (endTime > 0) {
+                soonestEndTime = Math.min(soonestEndTime, endTime);
+            }
         }
     }
 

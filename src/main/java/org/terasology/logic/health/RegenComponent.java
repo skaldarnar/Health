@@ -15,11 +15,15 @@
  */
 package org.terasology.logic.health;
 
+import com.google.common.collect.Ordering;
+import com.google.common.collect.SortedSetMultimap;
+import com.google.common.collect.TreeMultimap;
 import org.terasology.entitySystem.Component;
 import org.terasology.math.TeraMath;
 import org.terasology.network.Replicate;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import static org.terasology.logic.health.RegenAuthoritySystem.BASE_REGEN;
@@ -30,35 +34,39 @@ public class RegenComponent implements Component {
     @Replicate
     public Map<String, Float> regenValue = new HashMap<>();
     @Replicate
-    public Map<String, Long> regenEndTime = new HashMap<>();
+    public SortedSetMultimap<Long, String> regenEndTime = TreeMultimap.create(Ordering.natural(),
+            Ordering.arbitrary());
     @Replicate
     public float remainder;
 
     public Long findSoonestEndTime() {
-        long result = Long.MAX_VALUE;
-        for (long value : regenEndTime.values()) {
-            if (value == -1) {
-                continue;
-            }
-            result = Math.min(result, value);
+        Iterator<Long> iterator = regenEndTime.keySet().iterator();
+        if (iterator.hasNext()) {
+            return iterator.next();
+        } else {
+            return 0L;
         }
-        return result;
     }
 
     public void addRegen(String id, float value, long endTime) {
         regenValue.put(id, value);
-        regenEndTime.put(id, endTime);
+        regenEndTime.put(endTime, id);
         if (endTime > 0) {
             soonestEndTime = Math.min(soonestEndTime, endTime);
         }
     }
 
     public void removeRegen(String id) {
-        final Long removedEndTime = regenEndTime.remove(id);
-        regenValue.remove(id);
-        if (removedEndTime == soonestEndTime) {
-            soonestEndTime = findSoonestEndTime();
+        Long removeKey = 0L;
+        for (Long key : regenEndTime.keySet()) {
+            for (String value : regenEndTime.get(key)) {
+                if (id.equals(value)) {
+                    removeKey = key;
+                    break;
+                }
+            }
         }
+        regenEndTime.remove(removeKey, id);
     }
 
     public int getRegenValue() {

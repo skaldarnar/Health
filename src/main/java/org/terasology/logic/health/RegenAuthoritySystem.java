@@ -140,17 +140,24 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     }
 
     private void removeCompleted(Long currentTime, RegenComponent regen) {
-        Long endTime;
         List<String> toBeRemoved = new LinkedList<>();
-        for (String id : regen.regenEndTime.keySet()) {
-            endTime = regen.regenEndTime.get(id);
-            if (endTime != -1 && endTime <= currentTime) {
-                toBeRemoved.add(id);
+        Long endTime;
+        Iterator<Long> iterator = regen.regenEndTime.keySet().iterator();
+        while (iterator.hasNext()) {
+            endTime = iterator.next();
+            if (endTime <= currentTime) {
+                if (endTime != -1) {
+                    // Add all string ids to be removed from regenComponent.regenValue
+                    toBeRemoved.addAll(regen.regenEndTime.get(endTime));
+                    // Remove from regenComponent.regenEndTime sorted map
+                    iterator.remove();
+                }
+            } else {
+                break;
             }
         }
         for (String id: toBeRemoved) {
             regen.regenValue.remove(id);
-            regen.regenEndTime.remove(id);
         }
         regen.soonestEndTime = regen.findSoonestEndTime();
     }

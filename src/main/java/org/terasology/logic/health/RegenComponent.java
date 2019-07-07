@@ -30,7 +30,7 @@ import static org.terasology.logic.health.RegenAuthoritySystem.BASE_REGEN;
 
 public class RegenComponent implements Component {
     @Replicate
-    public long soonestEndTime;
+    public long soonestEndTime = Long.MAX_VALUE;
     @Replicate
     public Map<String, Float> regenValue = new HashMap<>();
     @Replicate
@@ -40,12 +40,15 @@ public class RegenComponent implements Component {
     public float remainder;
 
     public Long findSoonestEndTime() {
+        Long endTime = 0L;
         Iterator<Long> iterator = regenEndTime.keySet().iterator();
-        if (iterator.hasNext()) {
-            return iterator.next();
-        } else {
-            return 0L;
+        while (iterator.hasNext()) {
+            endTime = iterator.next();
+            if (endTime > 0) {
+                return endTime;
+            }
         }
+        return endTime;
     }
 
     public void addRegen(String id, float value, long endTime) {

@@ -52,11 +52,10 @@ public class RegenComponent implements Component {
     }
 
     public void addRegen(String id, float value, long endTime) {
+        removeRegen(id);
         regenValue.put(id, value);
         regenEndTime.put(endTime, id);
-        if (endTime > 0) {
-            soonestEndTime = Math.min(soonestEndTime, endTime);
-        }
+        soonestEndTime = findSoonestEndTime();
     }
 
     public void removeRegen(String id) {
@@ -70,6 +69,7 @@ public class RegenComponent implements Component {
             }
         }
         regenEndTime.remove(removeKey, id);
+        regenValue.remove(id);
     }
 
     public int getRegenValue() {

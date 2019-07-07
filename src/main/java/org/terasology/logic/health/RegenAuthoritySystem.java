@@ -104,14 +104,16 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
 
         // Add new regen if present, or remove RegenComponent
         operationsToInvoke.stream().filter(EntityRef::exists).forEach(regenEntity -> {
-            RegenComponent regen = regenEntity.getComponent(RegenComponent.class);
-            regenSortedByTime.remove(regen.soonestEndTime, regenEntity);
-            removeCompleted(currentWorldTime, regen);
-            if (regen.regenValue.isEmpty()) {
-                regenEntity.removeComponent(RegenComponent.class);
-            } else {
-                regenEntity.saveComponent(regen);
-                regenSortedByTime.put(regen.findSoonestEndTime(), regenEntity);
+            if (regenEntity.exists() && regenEntity.hasComponent(RegenComponent.class)) {
+                RegenComponent regen = regenEntity.getComponent(RegenComponent.class);
+                regenSortedByTime.remove(regen.soonestEndTime, regenEntity);
+                removeCompleted(currentWorldTime, regen);
+                if (regen.regenValue.isEmpty()) {
+                    regenEntity.removeComponent(RegenComponent.class);
+                } else {
+                    regenEntity.saveComponent(regen);
+                    regenSortedByTime.put(regen.findSoonestEndTime(), regenEntity);
+                }
             }
         });
 

@@ -48,7 +48,7 @@ public class RestorationAuthoritySystem extends BaseComponentSystem {
         BeforeRestoreEvent beforeRestoreEvent = entity.send(new BeforeRestoreEvent(event.getAmount(), entity));
         if (!beforeRestoreEvent.isConsumed()) {
             int modifiedRestoreAmount = TeraMath.floorToInt(beforeRestoreEvent.getResultValue());
-            if (modifiedRestoreAmount > 0) {
+            if (modifiedRestoreAmount >= 0) {
                 restore(entity, health, modifiedRestoreAmount);
             } else {
                 // Cause "healing" damage to entity if modified value of restoration is negative

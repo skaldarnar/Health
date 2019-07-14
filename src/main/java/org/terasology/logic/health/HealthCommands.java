@@ -25,7 +25,7 @@ import org.terasology.logic.console.commandSystem.annotations.Command;
 import org.terasology.logic.console.commandSystem.annotations.CommandParam;
 import org.terasology.logic.console.commandSystem.annotations.Sender;
 import org.terasology.logic.health.event.DoDamageEvent;
-import org.terasology.logic.health.event.DoHealEvent;
+import org.terasology.logic.health.event.DoRestoreEvent;
 import org.terasology.logic.permission.PermissionManager;
 import org.terasology.network.ClientComponent;
 import org.terasology.registry.In;
@@ -77,7 +77,7 @@ public class HealthCommands extends BaseComponentSystem {
             requiredPermission = PermissionManager.CHEAT_PERMISSION)
     public String healthMax(@Sender EntityRef clientEntity) {
         ClientComponent clientComp = clientEntity.getComponent(ClientComponent.class);
-        clientComp.character.send(new DoHealEvent(100000, clientComp.character));
+        clientComp.character.send(new DoRestoreEvent(100000, clientComp.character));
         return "Health fully restored";
     }
 
@@ -85,7 +85,7 @@ public class HealthCommands extends BaseComponentSystem {
             requiredPermission = PermissionManager.CHEAT_PERMISSION)
     public String heal(@Sender EntityRef client, @CommandParam("amount") int amount) {
         ClientComponent clientComp = client.getComponent(ClientComponent.class);
-        clientComp.character.send(new DoHealEvent(amount, clientComp.character));
+        clientComp.character.send(new DoRestoreEvent(amount, clientComp.character));
         return "Health restored for " + amount;
     }
 

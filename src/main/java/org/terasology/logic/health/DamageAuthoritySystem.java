@@ -36,7 +36,7 @@ import org.terasology.logic.health.event.ActivateRegenEvent;
 import org.terasology.logic.health.event.BeforeDamagedEvent;
 import org.terasology.logic.health.event.DamageSoundComponent;
 import org.terasology.logic.health.event.DoDamageEvent;
-import org.terasology.logic.health.event.DoHealEvent;
+import org.terasology.logic.health.event.DoRestoreEvent;
 import org.terasology.logic.health.event.OnDamagedEvent;
 import org.terasology.logic.inventory.ItemComponent;
 import org.terasology.math.TeraMath;
@@ -128,10 +128,10 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
         BeforeDamagedEvent beforeDamage = entity.send(new BeforeDamagedEvent(amount, damageType, instigator, directCause));
         if (!beforeDamage.isConsumed()) {
             int damageAmount = TeraMath.floorToInt(beforeDamage.getResultValue());
-            if (damageAmount > 0) {
+            if (damageAmount >= 0) {
                 doDamage(entity, damageAmount, damageType, instigator, directCause);
             } else {
-                entity.send(new DoHealEvent(-damageAmount, instigator));
+                entity.send(new DoRestoreEvent(-damageAmount, instigator));
             }
         }
     }

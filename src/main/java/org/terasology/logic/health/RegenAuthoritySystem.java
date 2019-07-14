@@ -159,10 +159,12 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     @ReceiveEvent
     public void onRegenAdded(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
                              HealthComponent health) {
-        // Remove previous scheduled regen, new will be added by addRegenToScheduler()
-        regenSortedByTime.remove(regen.soonestEndTime, entity);
-        addRegenToScheduler(event, entity, regen, health);
-        regenSortedByTime.put(regen.soonestEndTime, entity);
+        if (event.value != 0) {
+            // Remove previous scheduled regen, new will be added by addRegenToScheduler()
+            regenSortedByTime.remove(regen.soonestEndTime, entity);
+            addRegenToScheduler(event, entity, regen, health);
+            regenSortedByTime.put(regen.soonestEndTime, entity);
+        }
     }
 
     @ReceiveEvent
@@ -189,7 +191,11 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
 
     @ReceiveEvent
     public void onRegenComponentAdded(OnActivatedComponent event, EntityRef entity, RegenComponent regen) {
-        regenSortedByTime.put(regen.soonestEndTime, entity);
+        if (!regen.regenValue.isEmpty()) {
+            regenSortedByTime.put(regen.soonestEndTime, entity);
+        } else {
+            entity.removeComponent(RegenComponent.class);
+        }
     }
 
     @ReceiveEvent

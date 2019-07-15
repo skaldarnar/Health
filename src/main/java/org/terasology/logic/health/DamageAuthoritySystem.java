@@ -125,10 +125,14 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     }
 
     private void checkDamage(EntityRef entity, int amount, Prefab damageType, EntityRef instigator, EntityRef directCause) {
+        // Ignore 0 damage
+        if (amount == 0) {
+            return;
+        }
         BeforeDamagedEvent beforeDamage = entity.send(new BeforeDamagedEvent(amount, damageType, instigator, directCause));
         if (!beforeDamage.isConsumed()) {
             int damageAmount = TeraMath.floorToInt(beforeDamage.getResultValue());
-            if (damageAmount >= 0) {
+            if (damageAmount > 0) {
                 doDamage(entity, damageAmount, damageType, instigator, directCause);
             } else {
                 entity.send(new DoRestoreEvent(-damageAmount, instigator));

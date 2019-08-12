@@ -24,7 +24,6 @@ import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.health.event.BeforeDamagedEvent;
 import org.terasology.logic.health.event.DoDamageEvent;
-import org.terasology.logic.health.event.OnHealedEvent;
 import org.terasology.logic.players.PlayerCharacterComponent;
 import org.terasology.moduletestingenvironment.ModuleTestingEnvironment;
 import org.terasology.moduletestingenvironment.TestEventReceiver;
@@ -139,12 +138,10 @@ public class DamageEventTest extends ModuleTestingEnvironment {
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
 
-        TestEventReceiver<OnHealedEvent> receiver = new TestEventReceiver<>(getHostContext(), OnHealedEvent.class);
-        List<OnHealedEvent> list = receiver.getEvents();
-
         player.send(new DoDamageEvent(-10));
-        assertEquals(1, list.size());
-        assertEquals(60, player.getComponent(HealthComponent.class).currentHealth);
+
+        // Negative base value are ignored by Damage system
+        assertEquals(50, player.getComponent(HealthComponent.class).currentHealth);
     }
 
 }

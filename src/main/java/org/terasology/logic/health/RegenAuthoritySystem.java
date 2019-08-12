@@ -58,7 +58,6 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
      * Long storing when entities are to be regenerated again.
      */
     private static long nextTick;
-    private static Logger logger = LoggerFactory.getLogger(RegenAuthoritySystem.class);
 
     // Stores when next to check for new value of regen, contains only entities which are being regenerated
     private SortedSetMultimap<Long, EntityRef> regenSortedByTime = TreeMultimap.create(Ordering.natural(),
@@ -127,13 +126,11 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
             RegenComponent regen = entity.getComponent(RegenComponent.class);
             HealthComponent health = entity.getComponent(HealthComponent.class);
             if (health != null && health.nextRegenTick < currentTime) {
-                logger.warn("regenerate reached " + entity.getId() + " value " + regen.getRegenValue() + " rate " +
-                        health.regenRate);
                 health.currentHealth += regen.getRegenValue();
                 health.nextRegenTick = currentTime + 1000;
                 if (health.currentHealth >= health.maxHealth) {
                     regenToBeRemoved.put(entity, regen.soonestEndTime);
-                    if (regen.hasBaseRegenOnly()) {
+                    if (regen.hasBaseRegenOnly() || regen.regenValue.isEmpty()) {
                         entity.removeComponent(RegenComponent.class);
                     }
                     entity.send(new OnFullyHealedEvent(entity));
@@ -173,17 +170,17 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     @ReceiveEvent
     public void onRegenAdded(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
                              HealthComponent health) {
-        logger.warn("onRegenAdded reached " + entity.getId());
-        // Remove previous scheduled regen, new will be added by addRegenToScheduler()
-        regenSortedByTime.remove(regen.soonestEndTime, entity);
-        addRegenToScheduler(event, entity, regen, health);
-        regenSortedByTime.put(regen.soonestEndTime, entity);
+        if (event.value != 0) {
+            // Remove previous scheduled regen, new will be added by addRegenToScheduler()
+            regenSortedByTime.remove(regen.soonestEndTime, entity);
+            addRegenToScheduler(event, entity, regen, health);
+            regenSortedByTime.put(regen.soonestEndTime, entity);
+        }
     }
 
     @ReceiveEvent
     public void onRegenAddedWithoutComponent(ActivateRegenEvent event, EntityRef entity, HealthComponent health) {
         if (!entity.hasComponent(RegenComponent.class)) {
-            logger.warn("onRegenAddedWithoutComponent reached " + entity.getId());
             RegenComponent regen = new RegenComponent();
             regen.soonestEndTime = Long.MAX_VALUE;
             addRegenToScheduler(event, entity, regen, health);
@@ -193,7 +190,6 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
 
     private void addRegenToScheduler(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
                                      HealthComponent health) {
-        logger.warn("addRegenToScheduler reached " + entity.getId());
         if (event.id.equals(BASE_REGEN)) {
             // setting endTime to -1 because natural regen happens till entity fully regenerates
             regen.addRegen(BASE_REGEN, health.regenRate, -1);
@@ -206,14 +202,16 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
 
     @ReceiveEvent
     public void onRegenComponentAdded(OnActivatedComponent event, EntityRef entity, RegenComponent regen) {
-        logger.warn("onRegenComponentAdded reached " + entity.getId());
-        regenSortedByTime.put(regen.soonestEndTime, entity);
+        if (!regen.regenValue.isEmpty()) {
+            regenSortedByTime.put(regen.soonestEndTime, entity);
+        } else {
+            entity.removeComponent(RegenComponent.class);
+        }
     }
 
     @ReceiveEvent
     public void onRegenRemoved(DeactivateRegenEvent event, EntityRef entity, HealthComponent health,
                                RegenComponent regen) {
-        logger.warn("onRegenRemoved reached " + entity.getId());
         regenSortedByTime.remove(regen.soonestEndTime, entity);
         if (event.id.equals(ALL_REGEN)) {
             entity.removeComponent(RegenComponent.class);

@@ -30,6 +30,7 @@ import org.terasology.moduletestingenvironment.ModuleTestingEnvironment;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class RegenTest extends ModuleTestingEnvironment {
@@ -117,5 +118,26 @@ public class RegenTest extends ModuleTestingEnvironment {
 
         regen = player.getComponent(RegenComponent.class);
         assertEquals(2, regen.getRegenValue());
+    }
+
+    @Test
+    public void zeroRegenTest() {
+        HealthComponent healthComponent = new HealthComponent();
+        healthComponent.currentHealth = 100;
+        healthComponent.maxHealth = 100;
+        healthComponent.waitBeforeRegen = 1;
+        healthComponent.regenRate = 0;
+
+        final EntityRef player = entityManager.create();
+        player.addComponent(new PlayerCharacterComponent());
+        player.addComponent(healthComponent);
+
+        player.send(new DoDamageEvent(5));
+        assertEquals(healthComponent.currentHealth, 95);
+
+        float tick = time.getGameTime() + 2 + 0.500f;
+        runWhile(()-> time.getGameTime() <= tick);
+
+        assertFalse(player.hasComponent(RegenComponent.class));
     }
 }

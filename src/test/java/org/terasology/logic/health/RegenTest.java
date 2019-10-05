@@ -66,8 +66,8 @@ public class RegenTest extends ModuleTestingEnvironment {
         player.send(new DoDamageEvent(5));
         assertEquals(healthComponent.currentHealth, 95);
 
-        // 1 sec wait before regen, 5 secs for regen, 0.1 sec for padding.
-        float tick = time.getGameTime() + 6 + 0.100f;
+        // 1 sec wait before regen, 5 secs for regen, 0.2 sec for padding.
+        float tick = time.getGameTime() + 6 + 0.200f;
         runWhile(()-> time.getGameTime() <= tick);
 
         assertEquals(healthComponent.currentHealth, 100);

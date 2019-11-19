@@ -80,11 +80,14 @@ public class HealthCommands extends BaseComponentSystem {
             DamageResistComponent damageResist = player.character.getComponent(DamageResistComponent.class);
             String s="ALL";
             if(damageResist==null) {
-                player.character.addComponent(new DamageResistComponent(value));
+                player.character.addComponent(new DamageResistComponent());
                 damageResist = player.character.getComponent(DamageResistComponent.class);
             }
             if(dType.equals(s)){
                 damageResist.setAll(value);
+                if(value==0){
+                    player.character.removeComponent(DamageResistComponent.class);
+                }
             }
 
             if(damageResist.damageTypes.containsKey(dType)){
@@ -94,10 +97,7 @@ public class HealthCommands extends BaseComponentSystem {
                 if(!dType.equals(s))
                     return "Not a valid Damage Type";
             }
-
-
             return "Resistance:"+ value +"% to "+dType;
-
         }
         else{
             return "accepted values:[0 to 100]";

@@ -23,21 +23,10 @@ import java.util.Map;
  * limitations under the License.
  */
 public class DamageResistComponent implements Component {
-   private int value;
    Map<String,Integer> damageTypes;
-
     public DamageResistComponent() {
-    damageTypes=new HashMap<>(100);
-    }
-    public DamageResistComponent(int value) {
-        this.value=value;
-        damageTypes=new HashMap<>(100);
-        this.setAll(0);
-
-
-    }
-    public int getValue(){
-        return value;
+    damageTypes=new HashMap<>(6);
+    this.setAll(0);
     }
     public void setAll(int d){
         damageTypes.put("directDamage",d);
@@ -46,7 +35,5 @@ public class DamageResistComponent implements Component {
         damageTypes.put("healingDamage",d);
         damageTypes.put("physicalDamage",d);
         damageTypes.put("supportRemovedDamage",d);
-
     }
-
 }

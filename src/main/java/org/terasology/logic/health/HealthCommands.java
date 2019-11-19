@@ -72,6 +72,50 @@ public class HealthCommands extends BaseComponentSystem {
             return "Specified damage type does not exist.";
         }
     }
+    @Command(shortDescription = "Damage Resistance", runOnServer = true,
+            requiredPermission = PermissionManager.CHEAT_PERMISSION)
+    public String damageResist(@CommandParam("DamageType") String dType,@CommandParam("Percentage") int value,@Sender EntityRef clientEntity) {
+        if(value>=0&&value<=100) {
+            ClientComponent player = clientEntity.getComponent(ClientComponent.class);
+            DamageResistComponent damageResist = player.character.getComponent(DamageResistComponent.class);
+            String s="ALL";
+            if(damageResist==null) {
+                player.character.addComponent(new DamageResistComponent(value));
+                damageResist = player.character.getComponent(DamageResistComponent.class);
+            }
+            if(dType.equals(s)){
+                damageResist.setAll(value);
+            }
+
+            if(damageResist.damageTypes.containsKey(dType)){
+                damageResist.damageTypes.put(dType,value);
+            }
+            else{
+                if(!dType.equals(s))
+                    return "Not a valid Damage Type";
+            }
+
+
+            return "Resistance:"+ value +"% to "+dType;
+
+        }
+        else{
+            return "accepted values:[0 to 100]";
+        }
+
+
+    }
+    @Command(shortDescription = "Check your Resistance")
+    public String checkResistance(@Sender EntityRef clientEntity){
+        ClientComponent player=clientEntity.getComponent(ClientComponent.class);
+        DamageResistComponent damageResistComponent=player.character.getComponent(DamageResistComponent.class);
+        if(damageResistComponent==null){
+            return "You don't have Resistance to any type of damage.";
+        }
+        else{
+            return damageResistComponent.damageTypes.entrySet().toString();
+        }
+    }
 
     @Command(shortDescription = "Restores your health to max", runOnServer = true,
             requiredPermission = PermissionManager.CHEAT_PERMISSION)

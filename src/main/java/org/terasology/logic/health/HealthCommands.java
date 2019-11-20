@@ -105,7 +105,8 @@ public class HealthCommands extends BaseComponentSystem {
 
 
     }
-    @Command(shortDescription = "Check your Resistance")
+    @Command(shortDescription = "Check your Resistance", runOnServer = true,
+            requiredPermission = PermissionManager.CHEAT_PERMISSION)
     public String checkResistance(@Sender EntityRef clientEntity){
         ClientComponent player=clientEntity.getComponent(ClientComponent.class);
         DamageResistComponent damageResistComponent=player.character.getComponent(DamageResistComponent.class);

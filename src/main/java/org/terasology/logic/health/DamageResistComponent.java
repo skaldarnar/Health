@@ -1,12 +1,3 @@
-package org.terasology.logic.health;
-
-import org.terasology.entitySystem.Component;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /*
  * Copyright 2019 MovingBlocks
  *
@@ -22,18 +13,11 @@ import java.util.Map;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.terasology.logic.health;
+
+import org.terasology.entitySystem.Component;
+import java.util.Map;
+
 public class DamageResistComponent implements Component {
    Map<String,Integer> damageTypes;
-    public DamageResistComponent() {
-    damageTypes=new HashMap<>(6);
-    this.setAll(0);
-    }
-    public void setAll(int d){
-        damageTypes.put("directDamage",d);
-        damageTypes.put("drowningDamage",d);
-        damageTypes.put("explosiveDamage",d);
-        damageTypes.put("healingDamage",d);
-        damageTypes.put("physicalDamage",d);
-        damageTypes.put("supportRemovedDamage",d);
-    }
 }

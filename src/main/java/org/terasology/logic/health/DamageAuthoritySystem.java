@@ -236,4 +236,18 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
             }
         }
     }
+    /**
+     * Reduces the baseDamage of BeforeDamagedEvent if DamageResistComponent is added.
+     *
+     * @param event BeforeDamagedEvent sent before inflicting damage
+     * @param entity Entity which suffered some type of damage
+     */
+    @ReceiveEvent
+    public void onResistMode(BeforeDamagedEvent event, EntityRef entity, DamageResistComponent resistanceComponent) {
+        String damageType=event.getDamageType().getName();
+        String subString=damageType.substring(7);
+        float data=100-resistanceComponent.damageTypes.get(subString);
+
+        event.multiply(data / 100);
+    }
 }

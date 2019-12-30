@@ -244,10 +244,21 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
      */
     @ReceiveEvent
     public void onResistMode(BeforeDamagedEvent event, EntityRef entity, DamageResistComponent resistanceComponent) {
-        String damageType=event.getDamageType().getName();
-        String subString=damageType.substring(7);
-        float data=100-resistanceComponent.damageTypes.get(subString);
+        String damageType = event.getDamageType().getName();
+        //takes the damage type name from the prefab name
+        String subString = damageType.substring(damageType.indexOf(':') + 1);
+        float amount;
+        String key;
+        if(resistanceComponent.damageTypes.containsKey("all")||resistanceComponent.damageTypes.containsKey(subString)){
+                    if(resistanceComponent.damageTypes.containsKey("all"))
+                        key = "all";
+                    else
+                        key = subString;
+                    amount = resistanceComponent.damageTypes.get(key);
+                    //amount is subtracted from 100 to get the percentage of the damage to be allowed
+                    float data = 100 - amount;
+                    event.multiply(data / 100);
+            }
 
-        event.multiply(data / 100);
     }
 }

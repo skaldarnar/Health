@@ -19,5 +19,5 @@ import org.terasology.entitySystem.Component;
 import java.util.Map;
 
 public class DamageResistComponent implements Component {
-   Map<String,Integer> damageTypes;
+   public Map<String,Float> damageTypes;
 }

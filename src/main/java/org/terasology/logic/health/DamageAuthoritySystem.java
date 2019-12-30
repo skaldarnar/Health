@@ -48,14 +48,13 @@ import org.terasology.utilities.random.Random;
 /**
  * This system reacts to OnDamageEvent events and lowers health on the HealthComponent, and handles
  * horizontal and vertical crashes of entities with HealthComponents.
- *
+ * <p>
  * Logic flow for damage:
  * - OnDamageEvent
  * - BeforeDamageEvent
  * - (HealthComponent saved)
  * - OnDamagedEvent
  * - DestroyEvent (if no health)
- *
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class DamageAuthoritySystem extends BaseComponentSystem {
@@ -69,7 +68,7 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     /**
      * Override the default behavior for an attack, causing it damage as opposed to just destroying it or doing nothing.
      *
-     * @param event Attack event sent on targetEntity.
+     * @param event        Attack event sent on targetEntity.
      * @param targetEntity The entity which is attacked.
      */
     @ReceiveEvent(components = HealthComponent.class, netFilter = RegisterMode.AUTHORITY)
@@ -116,7 +115,7 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     /**
      * Handles DoDamageEvent to inflict damage to entity with HealthComponent.
      *
-     * @param event DoDamageEvent causing the damage on the entity.
+     * @param event  DoDamageEvent causing the damage on the entity.
      * @param entity The entity which is damaged.
      */
     @ReceiveEvent
@@ -143,12 +142,12 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     /**
      * Handles damage sound on inflicting damage to entity.
      *
-     * @param event OnDamagedEvent triggered when entity is damaged.
-     * @param entity Entity which is damaged.
+     * @param event           OnDamagedEvent triggered when entity is damaged.
+     * @param entity          Entity which is damaged.
      * @param characterSounds Component having sound settings.
      */
     @ReceiveEvent
-    public void onDamaged(OnDamagedEvent event, EntityRef entity, CharacterSoundComponent characterSounds)  {
+    public void onDamaged(OnDamagedEvent event, EntityRef entity, CharacterSoundComponent characterSounds) {
         if (characterSounds.lastSoundTime + CharacterSoundSystem.MIN_TIME < time.getGameTimeInMs()) {
 
             // play the sound of damage hitting the character for everyone
@@ -177,7 +176,7 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     /**
      * Causes damage to entity when fallingDamageSpeedThreshold is breached.
      *
-     * @param event VerticalCollisionEvent sent when falling speed threshold is crossed.
+     * @param event  VerticalCollisionEvent sent when falling speed threshold is crossed.
      * @param entity The entity which is damaged due to falling.
      */
     @ReceiveEvent
@@ -190,7 +189,7 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     /**
      * Inflicts damage to entity if horizontalDamageSpeedThreshold is breached.
      *
-     * @param event HorizontalCollisionEvent sent when "falling horizontally".
+     * @param event  HorizontalCollisionEvent sent when "falling horizontally".
      * @param entity Entity which is damaged on "horizontal fall".
      */
     @ReceiveEvent
@@ -214,8 +213,8 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     /**
      * Plays landing sound on crashing horizontally.
      *
-     * @param event HorizontalCollisionEvent sent when "falling horizontally".
-     * @param entity Entity which is damaged on "horizontal fall".
+     * @param event           HorizontalCollisionEvent sent when "falling horizontally".
+     * @param entity          Entity which is damaged on "horizontal fall".
      * @param characterSounds For getting the sound to be played on crash.
      * @param healthComponent To play sound only when threshold speed is crossed.
      */
@@ -236,10 +235,11 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
             }
         }
     }
+
     /**
      * Reduces the baseDamage of BeforeDamagedEvent if DamageResistComponent is added.
      *
-     * @param event BeforeDamagedEvent sent before inflicting damage
+     * @param event  BeforeDamagedEvent sent before inflicting damage
      * @param entity Entity which suffered some type of damage
      */
     @ReceiveEvent
@@ -247,18 +247,18 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
         String damageType = event.getDamageType().getName();
         //takes the damage type name from the prefab name
         String subString = damageType.substring(damageType.indexOf(':') + 1);
-        float amount;
         String key;
-        if(resistanceComponent.damageTypes.containsKey("all")||resistanceComponent.damageTypes.containsKey(subString)){
-                    if(resistanceComponent.damageTypes.containsKey("all"))
-                        key = "all";
-                    else
-                        key = subString;
-                    amount = resistanceComponent.damageTypes.get(key);
-                    //amount is subtracted from 100 to get the percentage of the damage to be allowed
-                    float data = 100 - amount;
-                    event.multiply(data / 100);
+        if (resistanceComponent.damageTypes.containsKey("all") || resistanceComponent.damageTypes.containsKey(subString)) {
+            if (resistanceComponent.damageTypes.containsKey("all")) {
+                key = "all";
+            } else {
+                key = subString;
             }
+            float amount = resistanceComponent.damageTypes.get(key);
+            //amount is subtracted from 100 to get the percentage of the damage to be allowed
+            float data = 100 - amount;
+            event.multiply(data / 100);
+        }
 
     }
 }

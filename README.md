@@ -33,8 +33,9 @@ Event chain:
 * OnDamagedEvent
 
 Commands:
-* damageResist(damagetype,percentage): gives resistance to damage.(damagetype = all for total resistance).
+* damageResist(damagetype,percentage): gives resistance to damage (damagetype = all for total resistance).
 * damageImmune(damagetype): percentage = 100 by default.
 * checkResistance(): gives list of active resistance values.
+
 ## Block Damage System
 Enables block to sustain some damage before getting destroyed, and produces block particle effect on damage.

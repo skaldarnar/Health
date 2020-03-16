@@ -15,7 +15,7 @@
  */
 package org.terasology.logic.health;
 
-import com.google.api.client.util.Sets;
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 import org.terasology.engine.Time;
@@ -31,7 +31,6 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class RegenTest extends ModuleTestingEnvironment {
 
@@ -49,28 +48,6 @@ public class RegenTest extends ModuleTestingEnvironment {
     public void initialize() {
         entityManager = getHostContext().get(EntityManager.class);
         time = getHostContext().get(Time.class);
-    }
-
-    @Test
-    public void regenTest() {
-        HealthComponent healthComponent = new HealthComponent();
-        healthComponent.currentHealth = 100;
-        healthComponent.maxHealth = 100;
-        healthComponent.waitBeforeRegen = 1;
-        healthComponent.regenRate = 1;
-
-        final EntityRef player = entityManager.create();
-        player.addComponent(new PlayerCharacterComponent());
-        player.addComponent(healthComponent);
-
-        player.send(new DoDamageEvent(5));
-        assertEquals(healthComponent.currentHealth, 95);
-
-        // 1 sec wait before regen, 5 secs for regen, 0.2 sec for padding.
-        float tick = time.getGameTime() + 6 + 0.200f;
-        runWhile(()-> time.getGameTime() <= tick);
-
-        assertEquals(healthComponent.currentHealth, 100);
     }
 
     @Test

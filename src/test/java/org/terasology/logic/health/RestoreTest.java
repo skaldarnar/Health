@@ -15,7 +15,7 @@
  */
 package org.terasology.logic.health;
 
-import com.google.api.client.util.Sets;
+import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -36,10 +36,9 @@ import java.util.List;
 import java.util.Set;
 
 public class RestoreTest extends ModuleTestingEnvironment {
+    private static final Logger logger = LoggerFactory.getLogger(RestoreTest.class);
 
     private EntityManager entityManager;
-
-    private static final Logger logger = LoggerFactory.getLogger(RestoreTest.class);
 
     @Override
     public Set<String> getDependencies() {

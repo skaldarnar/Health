@@ -15,7 +15,7 @@
  */
 package org.terasology.logic.health;
 
-import com.google.api.client.util.Sets;
+import com.google.common.collect.Sets;
 import org.junit.Test;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityRef;

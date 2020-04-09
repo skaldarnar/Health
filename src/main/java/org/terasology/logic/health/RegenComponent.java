@@ -19,11 +19,9 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.terasology.entitySystem.Component;
-import org.terasology.math.TeraMath;
 import org.terasology.network.Replicate;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import static org.terasology.logic.health.RegenAuthoritySystem.BASE_REGEN;
@@ -38,54 +36,4 @@ public class RegenComponent implements Component {
             Ordering.arbitrary());
     @Replicate
     public float remainder;
-
-    public Long findSoonestEndTime() {
-        Long endTime = 0L;
-        Iterator<Long> iterator = regenEndTime.keySet().iterator();
-        while (iterator.hasNext()) {
-            endTime = iterator.next();
-            if (endTime > 0) {
-                return endTime;
-            }
-        }
-        return endTime;
-    }
-
-    public void addRegen(String id, float value, long endTime) {
-        if (value != 0) {
-            regenValue.put(id, value);
-            regenEndTime.put(endTime, id);
-            if (endTime > 0) {
-                soonestEndTime = Math.min(soonestEndTime, endTime);
-            }
-        }
-    }
-
-    public void removeRegen(String id) {
-        Long removeKey = 0L;
-        for (Long key : regenEndTime.keySet()) {
-            for (String value : regenEndTime.get(key)) {
-                if (id.equals(value)) {
-                    removeKey = key;
-                    break;
-                }
-            }
-        }
-        regenEndTime.remove(removeKey, id);
-        regenValue.remove(id);
-    }
-
-    public int getRegenValue() {
-        float totalValue = remainder;
-        for (float value : regenValue.values()) {
-            totalValue += value;
-        }
-        totalValue = Math.max(0, totalValue);
-        remainder = totalValue % 1;
-        return TeraMath.floorToInt(totalValue);
-    }
-
-    public boolean hasBaseRegenOnly() {
-        return (regenValue.size() == 1) && (regenValue.containsKey(BASE_REGEN));
-    }
 }

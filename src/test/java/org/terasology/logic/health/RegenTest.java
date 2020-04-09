@@ -88,13 +88,14 @@ public class RegenTest extends ModuleTestingEnvironment {
         player.send(new ActivateRegenEvent("Potion#2", 2, 10));
 
         RegenComponent regen = player.getComponent(RegenComponent.class);
-        assertEquals(7, regen.getRegenValue());
+        RegenAuthoritySystem system = new RegenAuthoritySystem();
+        assertEquals(7, system.getRegenValue(regen));
 
         float tick = time.getGameTime() + 6 + 0.200f;
         runWhile(()-> time.getGameTime() <= tick);
 
         regen = player.getComponent(RegenComponent.class);
-        assertEquals(2, regen.getRegenValue());
+        assertEquals(2, system.getRegenValue(regen));
     }
 
     @Test

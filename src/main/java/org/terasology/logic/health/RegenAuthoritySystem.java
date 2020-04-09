@@ -15,6 +15,7 @@
  */
 package org.terasology.logic.health;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
@@ -32,6 +33,7 @@ import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
 import org.terasology.logic.health.event.ActivateRegenEvent;
 import org.terasology.logic.health.event.DeactivateRegenEvent;
 import org.terasology.logic.health.event.OnFullyHealedEvent;
+import org.terasology.math.TeraMath;
 import org.terasology.registry.In;
 
 import java.util.HashMap;
@@ -111,7 +113,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
                     regenEntity.removeComponent(RegenComponent.class);
                 } else {
                     regenEntity.saveComponent(regen);
-                    regenSortedByTime.put(regen.findSoonestEndTime(), regenEntity);
+                    regenSortedByTime.put(findSoonestEndTime(regen), regenEntity);
                 }
             }
         });
@@ -126,11 +128,11 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
             RegenComponent regen = entity.getComponent(RegenComponent.class);
             HealthComponent health = entity.getComponent(HealthComponent.class);
             if (health != null && health.nextRegenTick < currentTime) {
-                health.currentHealth += regen.getRegenValue();
+                health.currentHealth += getRegenValue(regen);
                 health.nextRegenTick = currentTime + 1000;
                 if (health.currentHealth >= health.maxHealth) {
                     regenToBeRemoved.put(entity, regen.soonestEndTime);
-                    if (regen.hasBaseRegenOnly() || regen.regenValue.isEmpty()) {
+                    if (hasBaseRegenOnly(regen) || regen.regenValue.isEmpty()) {
                         entity.removeComponent(RegenComponent.class);
                     }
                     entity.send(new OnFullyHealedEvent(entity));
@@ -163,7 +165,7 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         for (String id: toBeRemoved) {
             regen.regenValue.remove(id);
         }
-        regen.soonestEndTime = regen.findSoonestEndTime();
+        regen.soonestEndTime = findSoonestEndTime(regen);
     }
 
 
@@ -192,11 +194,11 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
                                      HealthComponent health) {
         if (event.id.equals(BASE_REGEN)) {
             // setting endTime to -1 because natural regen happens till entity fully regenerates
-            regen.addRegen(BASE_REGEN, health.regenRate, -1);
-            regen.addRegen(WAIT, -health.regenRate,
-                    time.getGameTimeInMs() + (long) (health.waitBeforeRegen * 1000));
+            addRegen(BASE_REGEN, health.regenRate, -1, regen);
+            addRegen(WAIT, -health.regenRate,
+                    time.getGameTimeInMs() + (long) (health.waitBeforeRegen * 1000), regen);
         } else {
-            regen.addRegen(event.id, event.value, time.getGameTimeInMs() + (long) (event.endTime * 1000));
+            addRegen(event.id, event.value, time.getGameTimeInMs() + (long) (event.endTime * 1000), regen);
         }
     }
 
@@ -216,13 +218,64 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         if (event.id.equals(ALL_REGEN)) {
             entity.removeComponent(RegenComponent.class);
         } else {
-            regen.removeRegen(event.id);
+            removeRegen(event.id, regen);
             if (event.id.equals(BASE_REGEN)) {
-                regen.removeRegen(WAIT);
+                removeRegen(WAIT, regen);
             }
             if (!regen.regenValue.isEmpty()) {
                 regenSortedByTime.put(regen.soonestEndTime, entity);
             }
         }
+    }
+
+    private Long findSoonestEndTime(RegenComponent regen) {
+        Long endTime = 0L;
+        Iterator<Long> iterator = regen.regenEndTime.keySet().iterator();
+        while (iterator.hasNext()) {
+            endTime = iterator.next();
+            if (endTime > 0) {
+                return endTime;
+            }
+        }
+        return endTime;
+    }
+
+    private void addRegen(String id, float value, long endTime, RegenComponent regen) {
+        if (value != 0) {
+            regen.regenValue.put(id, value);
+            regen.regenEndTime.put(endTime, id);
+            if (endTime > 0) {
+                regen.soonestEndTime = Math.min(regen.soonestEndTime, endTime);
+            }
+        }
+    }
+
+    private void removeRegen(String id, RegenComponent regen) {
+        Long removeKey = 0L;
+        for (Long key : regen.regenEndTime.keySet()) {
+            for (String value : regen.regenEndTime.get(key)) {
+                if (id.equals(value)) {
+                    removeKey = key;
+                    break;
+                }
+            }
+        }
+        regen.regenEndTime.remove(removeKey, id);
+        regen.regenValue.remove(id);
+    }
+
+    @VisibleForTesting
+    int getRegenValue(RegenComponent regen) {
+        float totalValue = regen.remainder;
+        for (float value : regen.regenValue.values()) {
+            totalValue += value;
+        }
+        totalValue = Math.max(0, totalValue);
+        regen.remainder = totalValue % 1;
+        return TeraMath.floorToInt(totalValue);
+    }
+
+    public boolean hasBaseRegenOnly(RegenComponent regen) {
+        return (regen.regenValue.size() == 1) && (regen.regenValue.containsKey(BASE_REGEN));
     }
 }

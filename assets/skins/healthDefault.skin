@@ -16,7 +16,7 @@
                 "UIIconBar": {
                     "parts": {
                         "icon": {
-                            "background": "engine:icons#darkHeartOutline"
+                            "background": "CoreAssets:icons#darkHeartOutline"
                         }
                     }
                 }

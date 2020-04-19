@@ -8,7 +8,7 @@
                 "type": "UIIconBar",
                 "id": "healthBar",
                 "family": "healthBar",
-                "icon": "engine:icons#redHeart",
+                "icon": "CoreAssets:icons#redHeart",
                 "halfIconMode": "split",
                 "spacing": 2,
                 "maxIcons": 10,

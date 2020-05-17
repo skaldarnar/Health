@@ -40,5 +40,8 @@ jobs:
           path: modules/${{ github.event.repository.name }}/build/libs/${{ github.event.repository.name }}-${{ env.MODULE_VERSION }}.jar
           shell: bash
       - name: Test
+        run: ./gradlew :modules:${{ github.event.repository.name }}:test
+        continue-on-error: true
+      - name: Check
         run: ./gradlew :modules:${{ github.event.repository.name }}:check
         continue-on-error: true

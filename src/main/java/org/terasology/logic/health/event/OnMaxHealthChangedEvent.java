@@ -11,9 +11,9 @@ public class OnMaxHealthChangedEvent implements Event {
 
     /**
      * Create a new notification event on character scaling.
-     *
-     * @param oldValue the entity's old height
-     * @param newValue the entity's new height (must be greater zero)
+     * 
+     * @param oldValue the entity's old maxHealth.
+     * @param newValue the entity's new maxHealth. (must be greater zero)
      */
     public OnMaxHealthChangedEvent(final int oldValue, final int newValue) {
         if (newValue <= 0) {

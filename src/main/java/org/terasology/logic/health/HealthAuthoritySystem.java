@@ -14,9 +14,9 @@ import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.logic.health.event.ChangeMaxHealthEvent;
 import org.terasology.logic.health.event.DoDamageEvent;
 import org.terasology.logic.health.event.MaxHealthChangedEvent;
+import org.terasology.nui.widgets.UIIconBar;
 import org.terasology.registry.In;
 import org.terasology.rendering.nui.NUIManager;
-import org.terasology.rendering.nui.widgets.UIIconBar;
 
 @RegisterSystem(value = RegisterMode.AUTHORITY)
 public class HealthAuthoritySystem extends BaseComponentSystem {
@@ -40,8 +40,8 @@ public class HealthAuthoritySystem extends BaseComponentSystem {
     }
 
     /**
-     * Reacts to the {@link MaxHealthChangedEvent} notification event.
-     * Is responsible for the change in maximum number of icons in the Health Bar UI.
+     * Reacts to the {@link MaxHealthChangedEvent} notification event. Is responsible for the change in maximum number
+     * of icons in the Health Bar UI.
      */
     @ReceiveEvent
     public void onMaxHealthChanged(MaxHealthChangedEvent event, EntityRef player) {

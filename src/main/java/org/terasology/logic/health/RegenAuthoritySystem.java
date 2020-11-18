@@ -6,6 +6,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
@@ -35,9 +37,11 @@ import java.util.Map;
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateSubscriberSystem {
+
     public static final String ALL_REGEN = "all";
     public static final String BASE_REGEN = "baseRegen";
-    public static final String WAIT = "wait";
+
+    private static final Logger logger = LoggerFactory.getLogger(RegenAuthoritySystem.class);
 
     /**
      * Integer storing when to check each effect.
@@ -45,13 +49,13 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     private static final int CHECK_INTERVAL = 200;
 
     /**
-     * Long storing when entities are to be regenerated again.
+     * The in-game time in ms at which entities are to be regenerated again.
      */
     private static long nextTick;
 
     // Stores when next to check for new value of regen, contains only entities which are being regenerated
-    private SortedSetMultimap<Long, EntityRef> regenSortedByTime = TreeMultimap.create(Ordering.natural(),
-            Ordering.arbitrary());
+    private final SortedSetMultimap<Long, EntityRef> regenSortedByTime =
+            TreeMultimap.create(Ordering.natural(), Ordering.arbitrary());
 
     @In
     private Time time;
@@ -67,44 +71,47 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     @Override
     public void update(float delta) {
         final long currentTime = time.getGameTimeInMs();
-        // Execute regen schedule
         if (currentTime > nextTick) {
             invokeRegenOperations(currentTime);
             nextTick = currentTime + CHECK_INTERVAL;
         }
     }
 
+    /**
+     * @param currentWorldTime the current in-game time in ms
+     */
     private void invokeRegenOperations(long currentWorldTime) {
         // Contains all the entities with current time crossing EndTime
-        List<EntityRef> operationsToInvoke = new LinkedList<>();
+        List<EntityRef> entitiesWithExpiringRegenActions = new LinkedList<>();
         Iterator<Long> regenTimeIterator = regenSortedByTime.keySet().iterator();
-        long processedTime;
+        long endTime;
         while (regenTimeIterator.hasNext()) {
-            processedTime = regenTimeIterator.next();
-            if (processedTime == -1) {
+            endTime = regenTimeIterator.next();
+            if (endTime == -1) {
                 continue;
             }
-            if (processedTime > currentWorldTime) {
+            if (endTime > currentWorldTime) {
                 break;
             }
-            operationsToInvoke.addAll(regenSortedByTime.get(processedTime));
+            entitiesWithExpiringRegenActions.addAll(regenSortedByTime.get(endTime));
             regenTimeIterator.remove();
         }
 
         // Add new regen if present, or remove RegenComponent
-        operationsToInvoke.stream().filter(EntityRef::exists).forEach(regenEntity -> {
-            if (regenEntity.exists() && regenEntity.hasComponent(RegenComponent.class)) {
-                RegenComponent regen = regenEntity.getComponent(RegenComponent.class);
-                regenSortedByTime.remove(regen.soonestEndTime, regenEntity);
-                removeCompleted(currentWorldTime, regen);
-                if (regen.regenValue.isEmpty()) {
-                    regenEntity.removeComponent(RegenComponent.class);
-                } else {
-                    regenEntity.saveComponent(regen);
-                    regenSortedByTime.put(findSoonestEndTime(regen), regenEntity);
-                }
-            }
-        });
+        entitiesWithExpiringRegenActions.stream()
+                .filter(EntityRef::exists)
+                .filter(entityRef -> entityRef.hasComponent(RegenComponent.class))
+                .forEach(regenEntity -> {
+                    RegenComponent regen = regenEntity.getComponent(RegenComponent.class);
+                    regenSortedByTime.remove(regen.soonestEndTime, regenEntity);
+                    removeCompleted(currentWorldTime, regen);
+                    if (regen.regenValue.isEmpty()) {
+                        regenEntity.removeComponent(RegenComponent.class);
+                    } else {
+                        regenEntity.saveComponent(regen);
+                        regenSortedByTime.put(findSoonestEndTime(regen), regenEntity);
+                    }
+                });
 
         // Regenerate the entities with EndTime greater than Current time
         regenerate(currentWorldTime);
@@ -161,38 +168,44 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
     public void onRegenAdded(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
                              HealthComponent health) {
         if (event.value != 0) {
+            logger.debug("activate regen '{}' for entity {} with regen component", event.id, entity);
+
             // Remove previous scheduled regen, new will be added by addRegenToScheduler()
             regenSortedByTime.remove(regen.soonestEndTime, entity);
-            addRegenToScheduler(event, entity, regen, health);
+            addRegenToScheduler(event, regen);
             regenSortedByTime.put(regen.soonestEndTime, entity);
         }
     }
 
     @ReceiveEvent
     public void onRegenAddedWithoutComponent(ActivateRegenEvent event, EntityRef entity, HealthComponent health) {
+        logger.debug("activate regen '{}' for entity {}", event.id, entity);
+
         if (!entity.hasComponent(RegenComponent.class)) {
+            logger.debug("creating new regen component for entity {}", entity);
             RegenComponent regen = new RegenComponent();
             regen.soonestEndTime = Long.MAX_VALUE;
-            addRegenToScheduler(event, entity, regen, health);
+            addRegenToScheduler(event, regen);
             entity.addComponent(regen);
         }
     }
 
-    private void addRegenToScheduler(ActivateRegenEvent event, EntityRef entity, RegenComponent regen,
-                                     HealthComponent health) {
-        if (event.id.equals(BASE_REGEN)) {
-            // setting endTime to -1 because natural regen happens till entity fully regenerates
-            addRegen(BASE_REGEN, health.regenRate, -1, regen);
-            addRegen(WAIT, -health.regenRate,
-                    time.getGameTimeInMs() + (long) (health.waitBeforeRegen * 1000), regen);
-        } else {
-            addRegen(event.id, event.value, time.getGameTimeInMs() + (long) (event.endTime * 1000), regen);
+    private void addRegenToScheduler(ActivateRegenEvent event, RegenComponent regen) {
+        if (event.value != 0) {
+            // handle indefinite regeneration actions
+            final long endTime = event.endTime < 0 ? -1 : time.getGameTimeInMs() + (long) (event.endTime * 1000);
+            regen.regenValue.put(event.id, event.value);
+            regen.regenEndTime.put(endTime, event.id);
+            if (endTime > 0) {
+                regen.soonestEndTime = Math.min(regen.soonestEndTime, endTime);
+            }
         }
     }
 
     @ReceiveEvent
     public void onRegenComponentAdded(OnActivatedComponent event, EntityRef entity, RegenComponent regen) {
         if (!regen.regenValue.isEmpty()) {
+            logger.debug("register regen component for entity {} at {}", entity, regen.soonestEndTime);
             regenSortedByTime.put(regen.soonestEndTime, entity);
         } else {
             entity.removeComponent(RegenComponent.class);
@@ -207,9 +220,6 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
             entity.removeComponent(RegenComponent.class);
         } else {
             removeRegen(event.id, regen);
-            if (event.id.equals(BASE_REGEN)) {
-                removeRegen(WAIT, regen);
-            }
             if (!regen.regenValue.isEmpty()) {
                 regenSortedByTime.put(regen.soonestEndTime, entity);
             }
@@ -228,15 +238,6 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         return endTime;
     }
 
-    private void addRegen(String id, float value, long endTime, RegenComponent regen) {
-        if (value != 0) {
-            regen.regenValue.put(id, value);
-            regen.regenEndTime.put(endTime, id);
-            if (endTime > 0) {
-                regen.soonestEndTime = Math.min(regen.soonestEndTime, endTime);
-            }
-        }
-    }
 
     private void removeRegen(String id, RegenComponent regen) {
         Long removeKey = 0L;

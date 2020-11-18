@@ -1,20 +1,9 @@
-/*
- * Copyright 2019 MovingBlocks
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2020 The Terasology Foundation
+// SPDX-License-Identifier: Apache-2.0
 package org.terasology.logic.health;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.terasology.audio.StaticSound;
 import org.terasology.audio.events.PlaySoundEvent;
 import org.terasology.audio.events.PlaySoundForOwnerEvent;
@@ -32,9 +21,12 @@ import org.terasology.logic.characters.MovementMode;
 import org.terasology.logic.characters.events.AttackEvent;
 import org.terasology.logic.characters.events.HorizontalCollisionEvent;
 import org.terasology.logic.characters.events.VerticalCollisionEvent;
+import org.terasology.logic.delay.DelayManager;
+import org.terasology.logic.delay.DelayedActionTriggeredEvent;
 import org.terasology.logic.health.event.ActivateRegenEvent;
 import org.terasology.logic.health.event.BeforeDamagedEvent;
 import org.terasology.logic.health.event.DamageSoundComponent;
+import org.terasology.logic.health.event.DeactivateRegenEvent;
 import org.terasology.logic.health.event.DoDamageEvent;
 import org.terasology.logic.health.event.DoRestoreEvent;
 import org.terasology.logic.health.event.OnDamagedEvent;
@@ -50,25 +42,35 @@ import org.terasology.utilities.random.Random;
  * horizontal and vertical crashes of entities with HealthComponents.
  * <p>
  * Logic flow for damage:
- * - OnDamageEvent
- * - BeforeDamageEvent
- * - (HealthComponent saved)
- * - OnDamagedEvent
- * - DestroyEvent (if no health)
+ * <ul>
+ *     <li>{@link DoDamageEvent}</li>
+ *     <li>{@link BeforeDamagedEvent}</li>
+ *     <li>{@link HealthComponent} is saved</li>
+ *     <li>{@link OnDamagedEvent}</li>
+ *     <li>{@link DestroyEvent} (if reaching 0 health)</li>
+ * </ul>
  */
 @RegisterSystem(RegisterMode.AUTHORITY)
 public class DamageAuthoritySystem extends BaseComponentSystem {
 
+    private static final Logger logger = LoggerFactory.getLogger(DamageAuthoritySystem.class);
+
+    private static final String DELAYED_REGEN_ACTIVATION = "DamageAuthoritySystem:activateRegenEvent";
+
     @In
     private Time time;
+
+    @In
+    private DelayManager delayManager;
 
     private Random random = new FastRandom();
 
 
     /**
-     * Override the default behavior for an attack, causing it damage as opposed to just destroying it or doing nothing.
+     * Override the default behavior for an attack, causing it damage as opposed to just destroying it or doing
+     * nothing.
      *
-     * @param event        Attack event sent on targetEntity.
+     * @param event Attack event sent on targetEntity.
      * @param targetEntity The entity which is attacked.
      */
     @ReceiveEvent(components = HealthComponent.class, netFilter = RegisterMode.AUTHORITY)
@@ -93,7 +95,8 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
         event.consume();
     }
 
-    private void doDamage(EntityRef entity, int damageAmount, Prefab damageType, EntityRef instigator, EntityRef directCause) {
+    private void doDamage(EntityRef entity, int damageAmount, Prefab damageType, EntityRef instigator,
+                          EntityRef directCause) {
         HealthComponent health = entity.getComponent(HealthComponent.class);
         CharacterMovementComponent characterMovementComponent = entity.getComponent(CharacterMovementComponent.class);
         boolean ghost = false;
@@ -103,19 +106,39 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
         if ((health != null) && !ghost) {
             int cappedDamage = Math.min(health.currentHealth, damageAmount);
             health.currentHealth -= cappedDamage;
-            entity.send(new ActivateRegenEvent());
             entity.saveComponent(health);
             entity.send(new OnDamagedEvent(damageAmount, cappedDamage, damageType, instigator));
             if (health.currentHealth == 0 && health.destroyEntityOnNoHealth) {
                 entity.send(new DestroyEvent(instigator, directCause, damageType));
             }
+            scheduleRegenEvent(entity, health.waitBeforeRegen);
+        }
+    }
+
+    private void scheduleRegenEvent(EntityRef entity, float delayInSeconds) {
+        // deactivate base regen because entity was damaged
+        entity.send(new DeactivateRegenEvent());
+        // reset timer for activating the base regen on the entity
+        if (delayManager.hasDelayedAction(entity, DELAYED_REGEN_ACTIVATION)) {
+            logger.debug("Canceling previous delayed regen event");
+            delayManager.cancelDelayedAction(entity, DELAYED_REGEN_ACTIVATION);
+        }
+        long delayInMs = Math.round(delayInSeconds * 1000);
+        logger.debug("Scheduling delayed regen event with delay '{}'", delayInMs);
+        delayManager.addDelayedAction(entity, DELAYED_REGEN_ACTIVATION, delayInMs);
+    }
+
+    @ReceiveEvent
+    public void onDelayedRegenActivation(DelayedActionTriggeredEvent event, EntityRef entity, HealthComponent health) {
+        if (event.getActionId().equals(DELAYED_REGEN_ACTIVATION)) {
+            entity.send(new ActivateRegenEvent(health.regenRate));
         }
     }
 
     /**
      * Handles DoDamageEvent to inflict damage to entity with HealthComponent.
      *
-     * @param event  DoDamageEvent causing the damage on the entity.
+     * @param event DoDamageEvent causing the damage on the entity.
      * @param entity The entity which is damaged.
      */
     @ReceiveEvent
@@ -123,12 +146,14 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
         checkDamage(entity, event.getAmount(), event.getDamageType(), event.getInstigator(), event.getDirectCause());
     }
 
-    private void checkDamage(EntityRef entity, int amount, Prefab damageType, EntityRef instigator, EntityRef directCause) {
+    private void checkDamage(EntityRef entity, int amount, Prefab damageType, EntityRef instigator,
+                             EntityRef directCause) {
         // Ignore 0 damage
         if (amount == 0) {
             return;
         }
-        BeforeDamagedEvent beforeDamage = entity.send(new BeforeDamagedEvent(amount, damageType, instigator, directCause));
+        BeforeDamagedEvent beforeDamage = entity.send(new BeforeDamagedEvent(amount, damageType, instigator,
+                directCause));
         if (!beforeDamage.isConsumed()) {
             int damageAmount = TeraMath.floorToInt(beforeDamage.getResultValue());
             if (damageAmount > 0) {
@@ -142,8 +167,8 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     /**
      * Handles damage sound on inflicting damage to entity.
      *
-     * @param event           OnDamagedEvent triggered when entity is damaged.
-     * @param entity          Entity which is damaged.
+     * @param event OnDamagedEvent triggered when entity is damaged.
+     * @param entity Entity which is damaged.
      * @param characterSounds Component having sound settings.
      */
     @ReceiveEvent
@@ -176,7 +201,7 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     /**
      * Causes damage to entity when fallingDamageSpeedThreshold is breached.
      *
-     * @param event  VerticalCollisionEvent sent when falling speed threshold is crossed.
+     * @param event VerticalCollisionEvent sent when falling speed threshold is crossed.
      * @param entity The entity which is damaged due to falling.
      */
     @ReceiveEvent
@@ -189,7 +214,7 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     /**
      * Inflicts damage to entity if horizontalDamageSpeedThreshold is breached.
      *
-     * @param event  HorizontalCollisionEvent sent when "falling horizontally".
+     * @param event HorizontalCollisionEvent sent when "falling horizontally".
      * @param entity Entity which is damaged on "horizontal fall".
      */
     @ReceiveEvent
@@ -213,13 +238,14 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     /**
      * Plays landing sound on crashing horizontally.
      *
-     * @param event           HorizontalCollisionEvent sent when "falling horizontally".
-     * @param entity          Entity which is damaged on "horizontal fall".
+     * @param event HorizontalCollisionEvent sent when "falling horizontally".
+     * @param entity Entity which is damaged on "horizontal fall".
      * @param characterSounds For getting the sound to be played on crash.
      * @param healthComponent To play sound only when threshold speed is crossed.
      */
     @ReceiveEvent
-    public void onCrash(HorizontalCollisionEvent event, EntityRef entity, CharacterSoundComponent characterSounds, HealthComponent healthComponent) {
+    public void onCrash(HorizontalCollisionEvent event, EntityRef entity, CharacterSoundComponent characterSounds,
+                        HealthComponent healthComponent) {
         Vector3f horizVelocity = new Vector3f(event.getVelocity());
         horizVelocity.y = 0;
         float velocity = horizVelocity.length();
@@ -239,7 +265,7 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     /**
      * Reduces the baseDamage of BeforeDamagedEvent if DamageResistComponent is added.
      *
-     * @param event  BeforeDamagedEvent sent before inflicting damage
+     * @param event BeforeDamagedEvent sent before inflicting damage
      * @param entity Entity which suffered some type of damage
      */
     @ReceiveEvent

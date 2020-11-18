@@ -37,13 +37,12 @@ public class ActivateRegenEvent implements Event {
      * Active base regeneration for the target entity.
      * <p>
      * Base regeneration (or "natural regeneration") is active until the entity is back at full health. The regeneration
-     * value is defined by {@link org.terasology.logic.health.HealthComponent#regenRate}.
+     * value is typically derived from {@link org.terasology.logic.health.HealthComponent#regenRate}.
      */
-    public ActivateRegenEvent() {
-        id = BASE_REGEN;
-        //TODO(skaldarnar): Why do we explicitly set the end time to 0 but don't set the value? The regeneration system
-        //                  will replace this value by -1 to model indefinite duration.
-        endTime = 0;
+    public ActivateRegenEvent(float value) {
+        this.value = value;
+        this.id = BASE_REGEN;
+        this.endTime = -1;
     }
 
     /**

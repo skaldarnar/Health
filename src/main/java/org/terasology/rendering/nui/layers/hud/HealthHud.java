@@ -17,9 +17,9 @@ package org.terasology.rendering.nui.layers.hud;
 
 import org.terasology.logic.health.HealthComponent;
 import org.terasology.logic.players.LocalPlayer;
+import org.terasology.nui.databinding.ReadOnlyBinding;
+import org.terasology.nui.widgets.UIIconBar;
 import org.terasology.registry.In;
-import org.terasology.rendering.nui.databinding.ReadOnlyBinding;
-import org.terasology.rendering.nui.widgets.UIIconBar;
 
 public class HealthHud extends CoreHudWidget {
 

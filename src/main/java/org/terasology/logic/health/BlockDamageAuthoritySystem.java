@@ -30,6 +30,7 @@ import org.terasology.logic.health.event.BeforeDamagedEvent;
 import org.terasology.logic.health.event.OnDamagedEvent;
 import org.terasology.logic.health.event.OnFullyHealedEvent;
 import org.terasology.logic.location.LocationComponent;
+import org.terasology.math.JomlUtil;
 import org.terasology.math.TeraMath;
 import org.terasology.math.geom.Vector2f;
 import org.terasology.math.geom.Vector3f;
@@ -170,7 +171,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
             spriteComponent.texture = terrainTexture.get();
             spriteComponent.textureSize.set(spriteSize, spriteSize);
 
-            final List<Vector2f> offsets = computeOffsets(blockAppearance, particleScale);
+            final List<org.joml.Vector2f> offsets = computeOffsets(blockAppearance, particleScale);
 
             TextureOffsetGeneratorComponent textureOffsetGeneratorComponent = builder.getComponent(TextureOffsetGeneratorComponent.class);
             textureOffsetGeneratorComponent.validOffsets.addAll(offsets);
@@ -187,7 +188,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
      *
      * @return a list of random offsets sampled from all block parts
      */
-    private List<Vector2f> computeOffsets(BlockAppearance blockAppearance, float scale) {
+    private List<org.joml.Vector2f> computeOffsets(BlockAppearance blockAppearance, float scale) {
         final float relativeTileSize = worldAtlas.getRelativeTileSize();
         final int absoluteTileSize = worldAtlas.getTileSize();
         final float pixelSize = relativeTileSize / absoluteTileSize;
@@ -197,7 +198,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
 
         return baseOffsets.flatMap(baseOffset ->
                     IntStream.range(0, 8).boxed().map(i ->
-                        new Vector2f(baseOffset).add(random.nextInt(absoluteTileSize - spriteWidth) * pixelSize, random.nextInt(absoluteTileSize - spriteWidth) * pixelSize)
+                        new org.joml.Vector2f(JomlUtil.from(baseOffset)).add(random.nextInt(absoluteTileSize - spriteWidth) * pixelSize, random.nextInt(absoluteTileSize - spriteWidth) * pixelSize)
                     )
                 ).collect(Collectors.toList());
     }

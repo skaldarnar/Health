@@ -17,7 +17,7 @@ package org.terasology.logic.health;
 
 import org.terasology.entitySystem.Component;
 import org.terasology.network.Replicate;
-import org.terasology.rendering.nui.properties.TextField;
+import org.terasology.nui.properties.TextField;
 
 /**
  * Provides Health to entity attached with HealthComponent. Contains the parameters

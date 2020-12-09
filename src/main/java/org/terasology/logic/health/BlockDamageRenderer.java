@@ -23,6 +23,7 @@ import org.terasology.entitySystem.systems.BaseComponentSystem;
 import org.terasology.entitySystem.systems.RegisterMode;
 import org.terasology.entitySystem.systems.RegisterSystem;
 import org.terasology.entitySystem.systems.RenderSystem;
+import org.terasology.math.JomlUtil;
 import org.terasology.math.geom.Vector3i;
 import org.terasology.registry.In;
 import org.terasology.rendering.assets.texture.Texture;
@@ -30,6 +31,7 @@ import org.terasology.rendering.assets.texture.TextureRegionAsset;
 import org.terasology.rendering.world.selection.BlockSelectionRenderer;
 import org.terasology.utilities.Assets;
 import org.terasology.world.block.BlockComponent;
+import org.terasology.world.block.BlockRegions;
 import org.terasology.world.block.regions.BlockRegionComponent;
 
 import java.util.Optional;
@@ -69,8 +71,8 @@ public class BlockDamageRenderer extends BaseComponentSystem implements RenderSy
                 continue;
             }
             BlockRegionComponent blockRegion = entity.getComponent(BlockRegionComponent.class);
-            for (Vector3i blockPos : blockRegion.region) {
-                groupedEntitiesByEffect.put(getEffectsNumber(health), blockPos);
+            for (org.joml.Vector3i blockPos : BlockRegions.iterable(blockRegion.region)) {
+                groupedEntitiesByEffect.put(getEffectsNumber(health), JomlUtil.from(blockPos));
             }
         }
 

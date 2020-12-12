@@ -31,6 +31,7 @@ import org.terasology.logic.health.event.DoDamageEvent;
 import org.terasology.logic.health.event.DoRestoreEvent;
 import org.terasology.logic.health.event.OnDamagedEvent;
 import org.terasology.logic.inventory.ItemComponent;
+import org.terasology.math.JomlUtil;
 import org.terasology.math.TeraMath;
 import org.terasology.math.geom.Vector3f;
 import org.terasology.registry.In;
@@ -219,7 +220,7 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
      */
     @ReceiveEvent
     public void onCrash(HorizontalCollisionEvent event, EntityRef entity, HealthComponent health) {
-        Vector3f vel = new Vector3f(event.getVelocity());
+        Vector3f vel = new Vector3f(JomlUtil.from(event.getVelocity()));
         vel.y = 0;
         float speed = vel.length();
 
@@ -246,7 +247,7 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
     @ReceiveEvent
     public void onCrash(HorizontalCollisionEvent event, EntityRef entity, CharacterSoundComponent characterSounds,
                         HealthComponent healthComponent) {
-        Vector3f horizVelocity = new Vector3f(event.getVelocity());
+        Vector3f horizVelocity = new Vector3f(JomlUtil.from(event.getVelocity()));
         horizVelocity.y = 0;
         float velocity = horizVelocity.length();
 

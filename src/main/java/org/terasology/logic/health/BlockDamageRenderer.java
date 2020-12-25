@@ -31,7 +31,6 @@ import org.terasology.rendering.assets.texture.TextureRegionAsset;
 import org.terasology.rendering.world.selection.BlockSelectionRenderer;
 import org.terasology.utilities.Assets;
 import org.terasology.world.block.BlockComponent;
-import org.terasology.world.block.BlockRegions;
 import org.terasology.world.block.regions.BlockRegionComponent;
 
 import java.util.Optional;
@@ -71,7 +70,7 @@ public class BlockDamageRenderer extends BaseComponentSystem implements RenderSy
                 continue;
             }
             BlockRegionComponent blockRegion = entity.getComponent(BlockRegionComponent.class);
-            for (org.joml.Vector3i blockPos : BlockRegions.iterable(blockRegion.region)) {
+            for (org.joml.Vector3ic blockPos : blockRegion.region) {
                 groupedEntitiesByEffect.put(getEffectsNumber(health), JomlUtil.from(blockPos));
             }
         }

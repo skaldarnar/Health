@@ -15,6 +15,8 @@
  */
 package org.terasology.logic.health;
 
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 import org.terasology.audio.AudioManager;
 import org.terasology.audio.StaticSound;
 import org.terasology.audio.events.PlaySoundEvent;
@@ -33,7 +35,6 @@ import org.terasology.logic.location.LocationComponent;
 import org.terasology.math.JomlUtil;
 import org.terasology.math.TeraMath;
 import org.terasology.math.geom.Vector2f;
-import org.terasology.math.geom.Vector3f;
 import org.terasology.particles.components.ParticleDataSpriteComponent;
 import org.terasology.particles.components.generators.TextureOffsetGeneratorComponent;
 import org.terasology.registry.In;
@@ -110,7 +111,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
     /** Adds marker component to block which is damaged. */
     @ReceiveEvent
     public void onDamaged(OnDamagedEvent event, EntityRef entity, BlockComponent blockComponent, LocationComponent locComp) {
-        onDamagedCommon(event, blockComponent.block.getBlockFamily(), locComp.getWorldPosition(), entity);
+        onDamagedCommon(event, blockComponent.block.getBlockFamily(), locComp.getWorldPosition(new Vector3f()), entity);
         if (!entity.hasComponent(BlockDamagedComponent.class)) {
             entity.addComponent(new BlockDamagedComponent());
         }
@@ -119,11 +120,11 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
     @ReceiveEvent
     public void onDamaged(OnDamagedEvent event, EntityRef entity, ActAsBlockComponent blockComponent, LocationComponent locComp) {
         if (blockComponent.block != null) {
-            onDamagedCommon(event, blockComponent.block, locComp.getWorldPosition(), entity);
+            onDamagedCommon(event, blockComponent.block, locComp.getWorldPosition(new Vector3f()), entity);
         }
     }
 
-    private void onDamagedCommon(OnDamagedEvent event, BlockFamily blockFamily, Vector3f location, EntityRef entityRef) {
+    private void onDamagedCommon(OnDamagedEvent event, BlockFamily blockFamily, Vector3fc location, EntityRef entityRef) {
         BlockDamageModifierComponent blockDamageSettings = event.getType().getComponent(BlockDamageModifierComponent.class);
         boolean skipDamageEffects = false;
         if (blockDamageSettings != null) {
@@ -135,7 +136,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
     }
 
     /** Calls helper function to create block particle effect and plays damage sound. */
-    private void onPlayBlockDamageCommon(BlockFamily family, Vector3f location, EntityRef entityRef) {
+    private void onPlayBlockDamageCommon(BlockFamily family, Vector3fc location, EntityRef entityRef) {
         createBlockParticleEffect(family, location);
 
         BlockSounds sounds = family.getArchetypeBlock().getSounds();
@@ -154,7 +155,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
      * @param family the {@link BlockFamily} of the damaged block
      * @param location the location of the damaged block
      */
-    private void createBlockParticleEffect(BlockFamily family, Vector3f location) {
+    private void createBlockParticleEffect(BlockFamily family, Vector3fc location) {
         EntityBuilder builder = entityManager.newBuilder("CoreAssets:defaultBlockParticles");
         builder.getComponent(LocationComponent.class).setWorldPosition(location);
 

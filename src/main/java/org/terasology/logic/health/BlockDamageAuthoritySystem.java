@@ -15,6 +15,7 @@
  */
 package org.terasology.logic.health;
 
+import org.joml.Vector2fc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.terasology.audio.AudioManager;
@@ -32,9 +33,7 @@ import org.terasology.logic.health.event.BeforeDamagedEvent;
 import org.terasology.logic.health.event.OnDamagedEvent;
 import org.terasology.logic.health.event.OnFullyHealedEvent;
 import org.terasology.logic.location.LocationComponent;
-import org.terasology.math.JomlUtil;
 import org.terasology.math.TeraMath;
-import org.terasology.math.geom.Vector2f;
 import org.terasology.particles.components.ParticleDataSpriteComponent;
 import org.terasology.particles.components.generators.TextureOffsetGeneratorComponent;
 import org.terasology.registry.In;
@@ -195,11 +194,11 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
         final float pixelSize = relativeTileSize / absoluteTileSize;
         final int spriteWidth = TeraMath.ceilToInt(scale * absoluteTileSize);
 
-        final Stream<Vector2f> baseOffsets = Arrays.stream(BlockPart.sideValues()).map(blockAppearance::getTextureAtlasPos);
+        final Stream<Vector2fc> baseOffsets = Arrays.stream(BlockPart.sideValues()).map(blockAppearance::getTextureAtlasPos);
 
         return baseOffsets.flatMap(baseOffset ->
                     IntStream.range(0, 8).boxed().map(i ->
-                        new org.joml.Vector2f(JomlUtil.from(baseOffset)).add(random.nextInt(absoluteTileSize - spriteWidth) * pixelSize, random.nextInt(absoluteTileSize - spriteWidth) * pixelSize)
+                        new org.joml.Vector2f(baseOffset).add(random.nextInt(absoluteTileSize - spriteWidth) * pixelSize, random.nextInt(absoluteTileSize - spriteWidth) * pixelSize)
                     )
                 ).collect(Collectors.toList());
     }

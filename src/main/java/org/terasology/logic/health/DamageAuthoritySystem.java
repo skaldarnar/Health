@@ -32,7 +32,6 @@ import org.terasology.logic.health.event.DoDamageEvent;
 import org.terasology.logic.health.event.DoRestoreEvent;
 import org.terasology.logic.health.event.OnDamagedEvent;
 import org.terasology.logic.inventory.ItemComponent;
-import org.terasology.math.JomlUtil;
 import org.terasology.math.TeraMath;
 import org.terasology.registry.In;
 import org.terasology.utilities.random.FastRandom;

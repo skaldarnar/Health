@@ -15,37 +15,30 @@
  */
 package org.terasology.logic.health;
 
-import com.google.common.collect.Sets;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.health.event.DoDamageEvent;
 import org.terasology.logic.players.PlayerCharacterComponent;
-import org.terasology.moduletestingenvironment.ModuleTestingEnvironment;
+import org.terasology.moduletestingenvironment.MTEExtension;
+import org.terasology.moduletestingenvironment.ModuleTestingHelper;
+import org.terasology.moduletestingenvironment.extension.Dependencies;
+import org.terasology.registry.In;
 
-import java.util.Set;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import static org.junit.Assert.assertEquals;
+@ExtendWith(MTEExtension.class)
+@Dependencies({"Health"})
+public class RegenSoloTest {
 
-public class RegenSoloTest extends ModuleTestingEnvironment {
-
-    private EntityManager entityManager;
-    private Time time;
-
-    @Override
-    public Set<String> getDependencies() {
-        Set<String> modules = Sets.newHashSet();
-        modules.add("Health");
-        return modules;
-    }
-
-    @Before
-    public void initialize() {
-        entityManager = getHostContext().get(EntityManager.class);
-        time = getHostContext().get(Time.class);
-    }
+    @In
+    protected EntityManager entityManager;
+    @In
+    protected Time time;
+    @In
+    protected ModuleTestingHelper helper;
 
     @Test
     public void regenTest() {
@@ -64,7 +57,7 @@ public class RegenSoloTest extends ModuleTestingEnvironment {
 
         // 1 sec wait before regen, 5 secs for regen, 0.2 sec for padding.
         float tick = time.getGameTime() + 6 + 0.200f;
-        runWhile(() -> time.getGameTime() <= tick);
+        helper.runWhile(() -> time.getGameTime() <= tick);
 
         assertEquals(healthComponent.currentHealth, 100);
     }

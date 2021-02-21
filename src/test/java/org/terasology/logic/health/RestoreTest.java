@@ -15,9 +15,8 @@
  */
 package org.terasology.logic.health;
 
-import com.google.common.collect.Sets;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.entitySystem.entity.EntityManager;
@@ -26,31 +25,26 @@ import org.terasology.logic.health.event.BeforeRestoreEvent;
 import org.terasology.logic.health.event.DoRestoreEvent;
 import org.terasology.logic.health.event.RestoreFullHealthEvent;
 import org.terasology.logic.players.PlayerCharacterComponent;
-import org.terasology.moduletestingenvironment.ModuleTestingEnvironment;
+import org.terasology.moduletestingenvironment.MTEExtension;
+import org.terasology.moduletestingenvironment.ModuleTestingHelper;
 import org.terasology.moduletestingenvironment.TestEventReceiver;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.terasology.moduletestingenvironment.extension.Dependencies;
+import org.terasology.registry.In;
 
 import java.util.List;
-import java.util.Set;
 
-public class RestoreTest extends ModuleTestingEnvironment {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@ExtendWith(MTEExtension.class)
+@Dependencies({"Health"})
+public class RestoreTest {
     private static final Logger logger = LoggerFactory.getLogger(RestoreTest.class);
 
+    @In
     private EntityManager entityManager;
-
-    @Override
-    public Set<String> getDependencies() {
-        Set<String> modules = Sets.newHashSet();
-        modules.add("Health");
-        return modules;
-    }
-
-    @Before
-    public void initialize() {
-        entityManager = getHostContext().get(EntityManager.class);
-    }
+    @In
+    protected ModuleTestingHelper helper;
 
     @Test
     public void restoreTest() {
@@ -71,7 +65,7 @@ public class RestoreTest extends ModuleTestingEnvironment {
 
     @Test
     public void restoreEventSentTest() {
-        TestEventReceiver<BeforeRestoreEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeRestoreEvent.class);
+        TestEventReceiver<BeforeRestoreEvent> receiver = new TestEventReceiver<>(helper.getHostContext(), BeforeRestoreEvent.class);
         List<BeforeRestoreEvent> list = receiver.getEvents();
         assertTrue(list.isEmpty());
 
@@ -97,7 +91,7 @@ public class RestoreTest extends ModuleTestingEnvironment {
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
 
-        TestEventReceiver<BeforeRestoreEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeRestoreEvent.class,
+        TestEventReceiver<BeforeRestoreEvent> receiver = new TestEventReceiver<>(helper.getHostContext(), BeforeRestoreEvent.class,
         (event, entity) -> {
             event.consume();
         });
@@ -115,7 +109,7 @@ public class RestoreTest extends ModuleTestingEnvironment {
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
 
-        TestEventReceiver<BeforeRestoreEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeRestoreEvent.class,
+        TestEventReceiver<BeforeRestoreEvent> receiver = new TestEventReceiver<>(helper.getHostContext(), BeforeRestoreEvent.class,
                 (event, entity) -> {
                     event.add(10);
                     event.add(-5);

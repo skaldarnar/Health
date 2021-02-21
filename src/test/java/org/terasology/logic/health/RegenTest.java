@@ -15,9 +15,8 @@
  */
 package org.terasology.logic.health;
 
-import com.google.common.collect.Sets;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.terasology.engine.Time;
 import org.terasology.entitySystem.entity.EntityManager;
 import org.terasology.entitySystem.entity.EntityRef;
@@ -25,30 +24,25 @@ import org.terasology.logic.health.event.ActivateRegenEvent;
 import org.terasology.logic.health.event.DeactivateRegenEvent;
 import org.terasology.logic.health.event.DoDamageEvent;
 import org.terasology.logic.players.PlayerCharacterComponent;
-import org.terasology.moduletestingenvironment.ModuleTestingEnvironment;
-
-import java.util.Set;
+import org.terasology.moduletestingenvironment.MTEExtension;
+import org.terasology.moduletestingenvironment.ModuleTestingHelper;
+import org.terasology.moduletestingenvironment.extension.Dependencies;
+import org.terasology.registry.In;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-public class RegenTest extends ModuleTestingEnvironment {
+@ExtendWith(MTEExtension.class)
+@Dependencies({"Health"})
+public class RegenTest {
 
-    private EntityManager entityManager;
-    private Time time;
+    @In
+    protected EntityManager entityManager;
+    @In
+    protected Time time;
+    @In
+    protected ModuleTestingHelper helper;
 
-    @Override
-    public Set<String> getDependencies() {
-        Set<String> modules = Sets.newHashSet();
-        modules.add("Health");
-        return modules;
-    }
-
-    @Before
-    public void initialize() {
-        entityManager = getHostContext().get(EntityManager.class);
-        time = getHostContext().get(Time.class);
-    }
 
     @Test
     public void regenCancelTest() {
@@ -67,7 +61,7 @@ public class RegenTest extends ModuleTestingEnvironment {
         player.send(new DeactivateRegenEvent());
 
         float tick = time.getGameTime() + 1 + 0.100f;
-        runWhile(()-> time.getGameTime() <= tick);
+        helper.runWhile(()-> time.getGameTime() <= tick);
 
         assertEquals(90, player.getComponent(HealthComponent.class).currentHealth);
     }
@@ -92,7 +86,7 @@ public class RegenTest extends ModuleTestingEnvironment {
         assertEquals(7, system.getRegenValue(regen));
 
         float tick = time.getGameTime() + 6 + 0.200f;
-        runWhile(()-> time.getGameTime() <= tick);
+        helper.runWhile(()-> time.getGameTime() <= tick);
 
         regen = player.getComponent(RegenComponent.class);
         assertEquals(2, system.getRegenValue(regen));
@@ -114,7 +108,7 @@ public class RegenTest extends ModuleTestingEnvironment {
         assertEquals(healthComponent.currentHealth, 95);
 
         float tick = time.getGameTime() + 2 + 0.500f;
-        runWhile(()-> time.getGameTime() <= tick);
+        helper.runWhile(()-> time.getGameTime() <= tick);
 
         assertFalse(player.hasComponent(RegenComponent.class));
     }

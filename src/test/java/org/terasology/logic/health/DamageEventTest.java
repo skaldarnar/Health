@@ -15,9 +15,8 @@
  */
 package org.terasology.logic.health;
 
-import com.google.common.collect.Sets;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.entitySystem.entity.EntityManager;
@@ -25,32 +24,27 @@ import org.terasology.entitySystem.entity.EntityRef;
 import org.terasology.logic.health.event.BeforeDamagedEvent;
 import org.terasology.logic.health.event.DoDamageEvent;
 import org.terasology.logic.players.PlayerCharacterComponent;
-import org.terasology.moduletestingenvironment.ModuleTestingEnvironment;
+import org.terasology.moduletestingenvironment.MTEExtension;
+import org.terasology.moduletestingenvironment.ModuleTestingHelper;
 import org.terasology.moduletestingenvironment.TestEventReceiver;
+import org.terasology.moduletestingenvironment.extension.Dependencies;
+import org.terasology.registry.In;
 
 import java.util.List;
-import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class DamageEventTest extends ModuleTestingEnvironment {
-
+@ExtendWith(MTEExtension.class)
+@Dependencies({"Health"})
+public class DamageEventTest {
     private static final Logger logger = LoggerFactory.getLogger(DamageEventTest.class);
 
-    private EntityManager entityManager;
+    @In
+    protected EntityManager entityManager;
+    @In
+    protected ModuleTestingHelper helper;
 
-    @Override
-    public Set<String> getDependencies() {
-        Set<String> modules = Sets.newHashSet();
-        modules.add("Health");
-        return modules;
-    }
-
-    @Before
-    public void initialize() {
-        entityManager = getHostContext().get(EntityManager.class);
-    }
 
     @Test
     public void damageTest() {
@@ -71,7 +65,7 @@ public class DamageEventTest extends ModuleTestingEnvironment {
 
     @Test
     public void damageEventSentTest() {
-        TestEventReceiver<BeforeDamagedEvent> receiver = new TestEventReceiver<>(getHostContext(), BeforeDamagedEvent.class);
+        TestEventReceiver<BeforeDamagedEvent> receiver = new TestEventReceiver<>(helper.getHostContext(), BeforeDamagedEvent.class);
         List<BeforeDamagedEvent> list = receiver.getEvents();
         assertTrue(list.isEmpty());
 
@@ -97,7 +91,7 @@ public class DamageEventTest extends ModuleTestingEnvironment {
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
 
-        TestEventReceiver<BeforeDamagedEvent> receiver = new TestEventReceiver<>(getHostContext(),
+        TestEventReceiver<BeforeDamagedEvent> receiver = new TestEventReceiver<>(helper.getHostContext(),
                 BeforeDamagedEvent.class,
                 (event, entity) -> {
                     event.add(5);
@@ -119,7 +113,7 @@ public class DamageEventTest extends ModuleTestingEnvironment {
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
 
-        TestEventReceiver<BeforeDamagedEvent> receiver = new TestEventReceiver<>(getHostContext(),
+        TestEventReceiver<BeforeDamagedEvent> receiver = new TestEventReceiver<>(helper.getHostContext(),
                 BeforeDamagedEvent.class,
                 (event, entity) -> {
                     event.consume();

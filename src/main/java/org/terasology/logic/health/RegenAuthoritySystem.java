@@ -122,7 +122,11 @@ public class RegenAuthoritySystem extends BaseComponentSystem implements UpdateS
         for (EntityRef entity : regenSortedByTime.values()) {
             RegenComponent regen = entity.getComponent(RegenComponent.class);
             HealthComponent health = entity.getComponent(HealthComponent.class);
-            if (health != null && health.nextRegenTick < currentTime) {
+            if (regen == null || health == null) {
+                logger.debug("Entity '{}' without RegenComponent or HealthComponent scheduled for regeneration - skipping", entity);
+                continue;
+            }
+            if (health.nextRegenTick < currentTime) {
                 health.currentHealth += getRegenValue(regen);
                 health.nextRegenTick = currentTime + 1000;
                 if (health.currentHealth >= health.maxHealth) {

@@ -1,0 +1,60 @@
+{
+    "type": "DirectionalDamageOverlay",
+    "contents": {
+        "type": "relativeLayout",
+        "contents": [
+            {
+                "type": "UIImage",
+                "id": "damageBottom",
+                "image": "damageBottom",
+                "layoutInfo": {
+                    "height": 115,
+                    "position-horizontal-center": {},
+                    "position-bottom": {
+                        "target": "BOTTOM",
+                        "offset": -15
+                    }
+                }
+            },
+            {
+                "type": "UIImage",
+                "id": "damageTop",
+                "image": "damageTop",
+                "layoutInfo": {
+                    "height": 115,
+                    "position-horizontal-center": {},
+                    "position-top": {
+                        "target": "TOP",
+                        "offset": -15
+                    }
+                }
+            },
+            {
+                "type": "UIImage",
+                "id": "damageLeft",
+                "image": "damageLeft",
+                "layoutInfo": {
+                    "width": 115,
+                    "position-vertical-center": {},
+                    "position-left": {
+                        "target": "LEFT",
+                        "offset": -15
+                    }
+                }
+            },
+            {
+                "type": "UIImage",
+                "id": "damageRight",
+                "image": "damageRight",
+                "layoutInfo": {
+                    "width": 115,
+                    "position-vertical-center": {},
+                    "position-right": {
+                        "target": "RIGHT",
+                        "offset": -15
+                    }
+                }
+            }
+        ]
+    }
+}

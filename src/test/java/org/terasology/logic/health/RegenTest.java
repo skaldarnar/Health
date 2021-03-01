@@ -18,10 +18,13 @@ import org.terasology.registry.In;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MTEExtension.class)
 @Dependencies({"Health"})
 public class RegenTest {
+
+    private static final float BUFFER = 0.2f; // 200 ms buffer time
 
     @In
     protected EntityManager entityManager;
@@ -42,15 +45,19 @@ public class RegenTest {
         final EntityRef player = entityManager.create();
         player.addComponent(new PlayerCharacterComponent());
         player.addComponent(healthComponent);
-        player.send(new DoDamageEvent(10));
+        player.send(new DoDamageEvent(20));
 
         // Deactivate base regen
         player.send(new DeactivateRegenEvent());
+        // there may have been some regeneration between the damage event and the deactivation
+        // Thus, we compare against the current health which should be less than the max health.
+        int currentHealth = player.getComponent(HealthComponent.class).currentHealth;
+        assertTrue(currentHealth < 100, "regeneration should have been canceled before reaching max health");
 
         float tick = time.getGameTime() + 1 + 0.100f;
         helper.runWhile(()-> time.getGameTime() <= tick);
 
-        assertEquals(90, player.getComponent(HealthComponent.class).currentHealth);
+        assertEquals(currentHealth, player.getComponent(HealthComponent.class).currentHealth);
     }
 
     @Test
@@ -98,5 +105,33 @@ public class RegenTest {
         helper.runWhile(()-> time.getGameTime() <= tick);
 
         assertFalse(player.hasComponent(RegenComponent.class));
+    }
+
+    @Test
+    public void regenTest() {
+        HealthComponent healthComponent = new HealthComponent();
+        healthComponent.currentHealth = 100;
+        healthComponent.maxHealth = 100;
+        healthComponent.waitBeforeRegen = 1;
+        healthComponent.regenRate = 1;
+
+        final EntityRef player = entityManager.create();
+        player.addComponent(new PlayerCharacterComponent());
+        player.addComponent(healthComponent);
+
+        player.send(new DoDamageEvent(5));
+        helper.runWhile(200, () -> true);
+        assertEquals(healthComponent.currentHealth, 95);
+
+        // wait 1 second before regen starts
+        float regenStarts = time.getGameTime() + healthComponent.waitBeforeRegen + BUFFER;
+        helper.runWhile(() -> time.getGameTime() <= regenStarts);
+        assertTrue(player.hasComponent(RegenComponent.class));
+
+        // wait for the regeneration to be finished: 5 dmg /  1hp/s = 5 seconds
+        float regenEnded = time.getGameTime() + 5f + BUFFER;
+        helper.runWhile(() -> time.getGameTime() <= regenEnded);
+
+        assertEquals(healthComponent.currentHealth, 100);
     }
 }

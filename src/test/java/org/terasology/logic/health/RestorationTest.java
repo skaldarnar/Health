@@ -45,10 +45,10 @@ public class RestorationTest {
         final EntityRef player = newPlayer(0);
 
         player.send(new DoRestoreEvent(10));
-        assertEquals(player.getComponent(HealthComponent.class).currentHealth, 10);
+        assertEquals(10, player.getComponent(HealthComponent.class).currentHealth);
 
         player.send(new DoRestoreEvent(999));
-        assertEquals(player.getComponent(HealthComponent.class).currentHealth, 100);
+        assertEquals(100, player.getComponent(HealthComponent.class).currentHealth);
     }
 
     @Test
@@ -112,9 +112,10 @@ public class RestorationTest {
                     event.multiply(-2);
                 })) {
             // Expected restoration value is ( initial:10 ) * (-2) == (-20)
-            // So, final health value: 50 + (-20) == 30
+            // As AbstractValueModifiableEvent#getResultValue guarantees that the resulting value is non-negative, this
+            // is actually canceled out to be 0...
             player.send(new DoRestoreEvent(10));
         }
-        assertEquals(30, player.getComponent(HealthComponent.class).currentHealth);
+        assertEquals(50, player.getComponent(HealthComponent.class).currentHealth);
     }
 }

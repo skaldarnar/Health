@@ -78,7 +78,7 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
         damageEntity(event, targetEntity);
     }
 
-    public static void damageEntity(AttackEvent event, EntityRef targetEntity) {
+    static void damageEntity(AttackEvent event, EntityRef targetEntity) {
         int damage = 1;
         Prefab damageType = EngineDamageTypes.PHYSICAL.get();
         // Calculate damage from item
@@ -110,8 +110,9 @@ public class DamageAuthoritySystem extends BaseComponentSystem {
             entity.send(new OnDamagedEvent(damageAmount, cappedDamage, damageType, instigator));
             if (health.currentHealth == 0 && health.destroyEntityOnNoHealth) {
                 entity.send(new DestroyEvent(instigator, directCause, damageType));
+            } else {
+                scheduleRegenEvent(entity, health.waitBeforeRegen);
             }
-            scheduleRegenEvent(entity, health.waitBeforeRegen);
         }
     }
 

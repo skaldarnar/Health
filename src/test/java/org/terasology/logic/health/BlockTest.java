@@ -18,6 +18,8 @@ package org.terasology.logic.health;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.terasology.engine.Time;
@@ -37,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MTEExtension.class)
 @Dependencies({"Health"})
+@Disabled("The test has some weird timing issues which will sporadically fail it. (see #70)")
 public class BlockTest {
     private static final Vector3ic BLOCK_LOCATION = new Vector3i(0, 0, 0).add(0, -1, 0);
 
@@ -52,7 +55,6 @@ public class BlockTest {
     protected BlockEntityRegistry blockEntityRegistry;
     @In
     protected ModuleTestingHelper helper;
-
 
     @Test
     public void blockRegenTest() {

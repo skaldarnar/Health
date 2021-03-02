@@ -45,6 +45,8 @@ public class HealthAuthoritySystem extends BaseComponentSystem {
      */
     @ReceiveEvent
     public void onMaxHealthChanged(MaxHealthChangedEvent event, EntityRef player) {
+        //TODO: as this is updating UI, I think this should not be in an AUTHORITY system...
+        //      this potentially requires the event to be distributed to the client (owner)
         UIIconBar healthBar = nuiManager.getHUD().find("healthBar", UIIconBar.class);
         healthBar.setMaxIcons(event.getNewValue() / 10);
     }

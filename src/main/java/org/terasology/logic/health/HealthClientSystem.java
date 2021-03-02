@@ -17,6 +17,8 @@ import org.terasology.registry.In;
 import org.terasology.rendering.nui.NUIManager;
 import org.terasology.rendering.nui.layers.hud.DirectionalDamageOverlay;
 
+import java.util.Arrays;
+
 @RegisterSystem(RegisterMode.CLIENT)
 public class HealthClientSystem extends BaseComponentSystem {
 
@@ -38,11 +40,17 @@ public class HealthClientSystem extends BaseComponentSystem {
     public void onDamaged(OnDamagedEvent event, EntityRef entity,
                           LocationComponent locationComponent,
                           HealthComponent healthComponent) {
-        // Show the relevant direction element
+
         EntityRef instigator = event.getInstigator();
         if (instigator != null && instigator.hasComponent(LocationComponent.class)) {
+            // Show the relevant direction element
             Direction direction = determineDamageDirection(instigator, locationComponent);
             directionalDamageOverlay.show(direction, DAMAGE_OVERLAY_DELAY_SECONDS);
+        } else {
+            // Show non-directional damage indication by making all four indicators visible
+            for (Direction direction: Direction.values()) {
+                directionalDamageOverlay.show(direction, DAMAGE_OVERLAY_DELAY_SECONDS);
+            }
         }
     }
 

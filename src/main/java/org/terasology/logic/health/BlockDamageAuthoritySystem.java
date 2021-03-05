@@ -84,7 +84,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
     /** Consumes damage event if block is indestructible. */
     @ReceiveEvent
     public void beforeDamaged(BeforeDamagedEvent event, EntityRef blockEntity, BlockComponent blockComp) {
-        if (!blockComp.block.isDestructible()) {
+        if (!blockComp.getBlock().isDestructible()) {
             event.consume();
         }
     }
@@ -110,7 +110,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
     /** Adds marker component to block which is damaged. */
     @ReceiveEvent
     public void onDamaged(OnDamagedEvent event, EntityRef entity, BlockComponent blockComponent, LocationComponent locComp) {
-        onDamagedCommon(event, blockComponent.block.getBlockFamily(), locComp.getWorldPosition(new Vector3f()), entity);
+        onDamagedCommon(event, blockComponent.getBlock().getBlockFamily(), locComp.getWorldPosition(new Vector3f()), entity);
         if (!entity.hasComponent(BlockDamagedComponent.class)) {
             entity.addComponent(new BlockDamagedComponent());
         }
@@ -205,7 +205,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
 
     @ReceiveEvent(netFilter = RegisterMode.AUTHORITY)
     public void beforeDamage(BeforeDamagedEvent event, EntityRef entity, BlockComponent blockComp) {
-        beforeDamageCommon(event, blockComp.block);
+        beforeDamageCommon(event, blockComp.getBlock());
     }
 
     @ReceiveEvent(netFilter = RegisterMode.AUTHORITY)
@@ -248,7 +248,7 @@ public class BlockDamageAuthoritySystem extends BaseComponentSystem {
     @ReceiveEvent
     public void beforeDamagedEnsureHealthPresent(BeforeDamagedEvent event, EntityRef blockEntity, BlockComponent blockComponent) {
         if (!blockEntity.hasComponent(HealthComponent.class)) {
-            Block type = blockComponent.block;
+            Block type = blockComponent.getBlock();
             if (type.isDestructible()) {
                 HealthComponent healthComponent = new HealthComponent();
                 healthComponent.maxHealth = type.getHardness();

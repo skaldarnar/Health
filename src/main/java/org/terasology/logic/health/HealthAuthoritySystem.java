@@ -1,22 +1,22 @@
 // Copyright 2020 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-package org.terasology.logic.health;
+package org.terasology.engine.logic.health;
 
-import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.entitySystem.event.EventPriority;
-import org.terasology.entitySystem.event.ReceiveEvent;
-import org.terasology.entitySystem.prefab.Prefab;
-import org.terasology.entitySystem.prefab.PrefabManager;
-import org.terasology.entitySystem.systems.BaseComponentSystem;
-import org.terasology.entitySystem.systems.RegisterMode;
-import org.terasology.entitySystem.systems.RegisterSystem;
-import org.terasology.logic.health.event.ChangeMaxHealthEvent;
-import org.terasology.logic.health.event.DoDamageEvent;
-import org.terasology.logic.health.event.MaxHealthChangedEvent;
+import org.terasology.engine.entitySystem.entity.EntityRef;
+import org.terasology.engine.entitySystem.event.EventPriority;
+import org.terasology.engine.entitySystem.event.ReceiveEvent;
+import org.terasology.engine.entitySystem.prefab.Prefab;
+import org.terasology.engine.entitySystem.prefab.PrefabManager;
+import org.terasology.engine.entitySystem.systems.BaseComponentSystem;
+import org.terasology.engine.entitySystem.systems.RegisterMode;
+import org.terasology.engine.entitySystem.systems.RegisterSystem;
+import org.terasology.engine.logic.health.event.ChangeMaxHealthEvent;
+import org.terasology.engine.logic.health.event.DoDamageEvent;
+import org.terasology.engine.logic.health.event.MaxHealthChangedEvent;
 import org.terasology.nui.widgets.UIIconBar;
-import org.terasology.registry.In;
-import org.terasology.rendering.nui.NUIManager;
+import org.terasology.engine.registry.In;
+import org.terasology.engine.rendering.nui.NUIManager;
 
 @RegisterSystem(value = RegisterMode.AUTHORITY)
 public class HealthAuthoritySystem extends BaseComponentSystem {

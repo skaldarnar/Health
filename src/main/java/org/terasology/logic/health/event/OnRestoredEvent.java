@@ -1,9 +1,9 @@
 // Copyright 2021 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
-package org.terasology.logic.health.event;
+package org.terasology.engine.logic.health.event;
 
-import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.network.OwnerEvent;
+import org.terasology.engine.entitySystem.entity.EntityRef;
+import org.terasology.engine.network.OwnerEvent;
 
 /**
  * This event is sent after the entity is restored. Final event of restoration logic.

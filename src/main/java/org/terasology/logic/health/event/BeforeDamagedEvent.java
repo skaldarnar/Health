@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.logic.health.event;
+package org.terasology.engine.logic.health.event;
 
-import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.entitySystem.event.AbstractConsumableValueModifiableEvent;
-import org.terasology.entitySystem.prefab.Prefab;
+import org.terasology.engine.entitySystem.entity.EntityRef;
+import org.terasology.engine.entitySystem.event.AbstractConsumableValueModifiableEvent;
+import org.terasology.engine.entitySystem.prefab.Prefab;
 
 /**
  * This event is sent to allow damage to be modified or cancelled, before it is processed.

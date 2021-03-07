@@ -1,6 +1,6 @@
 // Copyright 2020 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
-package org.terasology.logic.health;
+package org.terasology.engine.logic.health;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
@@ -8,20 +8,20 @@ import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terasology.engine.Time;
-import org.terasology.entitySystem.entity.EntityManager;
-import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.entitySystem.entity.lifecycleEvents.OnActivatedComponent;
-import org.terasology.entitySystem.event.ReceiveEvent;
-import org.terasology.entitySystem.systems.BaseComponentSystem;
-import org.terasology.entitySystem.systems.RegisterMode;
-import org.terasology.entitySystem.systems.RegisterSystem;
-import org.terasology.entitySystem.systems.UpdateSubscriberSystem;
-import org.terasology.logic.health.event.ActivateRegenEvent;
-import org.terasology.logic.health.event.DeactivateRegenEvent;
-import org.terasology.logic.health.event.OnFullyHealedEvent;
+import org.terasology.engine.core.Time;
+import org.terasology.engine.entitySystem.entity.EntityManager;
+import org.terasology.engine.entitySystem.entity.EntityRef;
+import org.terasology.engine.entitySystem.entity.lifecycleEvents.OnActivatedComponent;
+import org.terasology.engine.entitySystem.event.ReceiveEvent;
+import org.terasology.engine.entitySystem.systems.BaseComponentSystem;
+import org.terasology.engine.entitySystem.systems.RegisterMode;
+import org.terasology.engine.entitySystem.systems.RegisterSystem;
+import org.terasology.engine.entitySystem.systems.UpdateSubscriberSystem;
+import org.terasology.engine.logic.health.event.ActivateRegenEvent;
+import org.terasology.engine.logic.health.event.DeactivateRegenEvent;
+import org.terasology.engine.logic.health.event.OnFullyHealedEvent;
 import org.terasology.math.TeraMath;
-import org.terasology.registry.In;
+import org.terasology.engine.registry.In;
 
 import java.util.HashMap;
 import java.util.Iterator;

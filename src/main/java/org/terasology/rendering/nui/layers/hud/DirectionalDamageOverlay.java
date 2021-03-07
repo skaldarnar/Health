@@ -1,14 +1,14 @@
 // Copyright 2020 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-package org.terasology.rendering.nui.layers.hud;
+package org.terasology.engine.rendering.nui.layers.hud;
 
 import com.google.common.collect.Lists;
-import org.terasology.engine.Time;
-import org.terasology.math.Direction;
+import org.terasology.engine.core.Time;
+import org.terasology.engine.math.Direction;
 import org.terasology.nui.Canvas;
 import org.terasology.nui.widgets.UIImage;
-import org.terasology.registry.In;
+import org.terasology.engine.registry.In;
 
 import java.util.HashMap;
 import java.util.List;

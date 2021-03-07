@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.logic.health;
+package org.terasology.engine.logic.health;
 
-import org.terasology.entitySystem.Component;
-import org.terasology.world.block.ForceBlockActive;
+import org.terasology.engine.entitySystem.Component;
+import org.terasology.engine.world.block.ForceBlockActive;
 
 /**
  * This component is added by the authority to temporary block entities so that they

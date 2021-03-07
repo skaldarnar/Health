@@ -1,20 +1,20 @@
 // Copyright 2021 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
-package org.terasology.logic.health;
+package org.terasology.engine.logic.health;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.terasology.engine.Time;
-import org.terasology.entitySystem.entity.EntityManager;
-import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.logic.health.event.ActivateRegenEvent;
-import org.terasology.logic.health.event.DeactivateRegenEvent;
-import org.terasology.logic.health.event.DoDamageEvent;
-import org.terasology.logic.players.PlayerCharacterComponent;
+import org.terasology.engine.core.Time;
+import org.terasology.engine.entitySystem.entity.EntityManager;
+import org.terasology.engine.entitySystem.entity.EntityRef;
+import org.terasology.engine.logic.health.event.ActivateRegenEvent;
+import org.terasology.engine.logic.health.event.DeactivateRegenEvent;
+import org.terasology.engine.logic.health.event.DoDamageEvent;
+import org.terasology.engine.logic.players.PlayerCharacterComponent;
 import org.terasology.moduletestingenvironment.MTEExtension;
 import org.terasology.moduletestingenvironment.ModuleTestingHelper;
 import org.terasology.moduletestingenvironment.extension.Dependencies;
-import org.terasology.registry.In;
+import org.terasology.engine.registry.In;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

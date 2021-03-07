@@ -13,26 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.logic.health;
+package org.terasology.engine.logic.health;
 
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.terasology.engine.Time;
-import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.logic.characters.events.AttackEvent;
+import org.terasology.engine.core.Time;
+import org.terasology.engine.entitySystem.entity.EntityRef;
+import org.terasology.engine.logic.characters.events.AttackEvent;
 import org.terasology.moduletestingenvironment.MTEExtension;
 import org.terasology.moduletestingenvironment.ModuleTestingHelper;
 import org.terasology.moduletestingenvironment.extension.Dependencies;
-import org.terasology.registry.In;
-import org.terasology.world.BlockEntityRegistry;
-import org.terasology.world.WorldProvider;
-import org.terasology.world.block.Block;
-import org.terasology.world.block.BlockManager;
+import org.terasology.engine.registry.In;
+import org.terasology.engine.world.BlockEntityRegistry;
+import org.terasology.engine.world.WorldProvider;
+import org.terasology.engine.world.block.Block;
+import org.terasology.engine.world.block.BlockManager;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

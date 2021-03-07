@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.logic.health;
+package org.terasology.engine.logic.health;
 
-import org.terasology.entitySystem.Component;
+import org.terasology.engine.entitySystem.Component;
 import java.util.Map;
 
 public class DamageResistComponent implements Component {

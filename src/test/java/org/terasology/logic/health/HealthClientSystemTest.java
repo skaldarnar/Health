@@ -1,17 +1,17 @@
 // Copyright 2021 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-package org.terasology.logic.health;
+package org.terasology.engine.logic.health;
 
 import org.joml.Vector3f;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.terasology.entitySystem.entity.EntityRef;
-import org.terasology.entitySystem.entity.internal.PojoEntityManager;
-import org.terasology.logic.location.LocationComponent;
-import org.terasology.math.Direction;
+import org.terasology.engine.entitySystem.entity.EntityRef;
+import org.terasology.engine.entitySystem.entity.internal.PojoEntityManager;
+import org.terasology.engine.logic.location.LocationComponent;
+import org.terasology.engine.math.Direction;
 
 import java.util.stream.Stream;
 

@@ -1,7 +1,7 @@
 // Copyright 2021 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-package org.terasology.rendering.nui.layers.hud;
+package org.terasology.engine.rendering.nui.layers.hud;
 
 import org.joml.Math;
 

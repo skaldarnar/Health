@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.engine.logic.health;
+package org.terasology.logic.health;
 
 import org.terasology.engine.entitySystem.entity.EntityRef;
 import org.terasology.engine.entitySystem.event.ReceiveEvent;
 import org.terasology.engine.entitySystem.systems.BaseComponentSystem;
 import org.terasology.engine.entitySystem.systems.RegisterMode;
 import org.terasology.engine.entitySystem.systems.RegisterSystem;
-import org.terasology.engine.logic.health.event.BeforeRestoreEvent;
-import org.terasology.engine.logic.health.event.DoDamageEvent;
-import org.terasology.engine.logic.health.event.DoRestoreEvent;
-import org.terasology.engine.logic.health.event.OnFullyHealedEvent;
-import org.terasology.engine.logic.health.event.OnRestoredEvent;
-import org.terasology.engine.logic.health.event.RestoreFullHealthEvent;
+import org.terasology.logic.health.event.BeforeRestoreEvent;
+import org.terasology.logic.health.event.DoDamageEvent;
+import org.terasology.logic.health.event.DoRestoreEvent;
+import org.terasology.logic.health.event.OnFullyHealedEvent;
+import org.terasology.logic.health.event.OnRestoredEvent;
+import org.terasology.logic.health.event.RestoreFullHealthEvent;
 import org.terasology.engine.logic.players.event.OnPlayerRespawnedEvent;
 import org.terasology.math.TeraMath;
 

@@ -1,6 +1,6 @@
 // Copyright 2021 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
-package org.terasology.engine.logic.health;
+package org.terasology.logic.health;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.joml.Vector3f;
@@ -9,13 +9,14 @@ import org.terasology.engine.entitySystem.event.ReceiveEvent;
 import org.terasology.engine.entitySystem.systems.BaseComponentSystem;
 import org.terasology.engine.entitySystem.systems.RegisterMode;
 import org.terasology.engine.entitySystem.systems.RegisterSystem;
-import org.terasology.engine.logic.health.event.OnDamagedEvent;
+import org.terasology.logic.health.HealthComponent;
+import org.terasology.logic.health.event.OnDamagedEvent;
 import org.terasology.engine.logic.location.LocationComponent;
 import org.terasology.engine.logic.players.PlayerCharacterComponent;
 import org.terasology.engine.math.Direction;
 import org.terasology.engine.registry.In;
 import org.terasology.engine.rendering.nui.NUIManager;
-import org.terasology.engine.rendering.nui.layers.hud.DirectionalDamageOverlay;
+import org.terasology.rendering.nui.layers.hud.DirectionalDamageOverlay;
 
 @RegisterSystem(RegisterMode.CLIENT)
 public class HealthClientSystem extends BaseComponentSystem {

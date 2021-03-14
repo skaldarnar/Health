@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.engine.logic.health.event;
+package org.terasology.logic.health.event;
 
 import org.terasology.engine.entitySystem.event.Event;
 
-import static org.terasology.engine.logic.health.RegenAuthoritySystem.BASE_REGEN;
+import static org.terasology.logic.health.RegenAuthoritySystem.BASE_REGEN;
 
 public class DeactivateRegenEvent implements Event {
     public String id;

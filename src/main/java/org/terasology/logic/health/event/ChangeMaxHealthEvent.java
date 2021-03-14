@@ -1,7 +1,7 @@
 // Copyright 2020 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-package org.terasology.engine.logic.health.event;
+package org.terasology.logic.health.event;
 
 import org.terasology.engine.entitySystem.event.AbstractValueModifiableEvent;
 

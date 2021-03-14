@@ -1,6 +1,6 @@
 // Copyright 2020 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
-package org.terasology.engine.logic.health;
+package org.terasology.logic.health;
 
 import org.joml.Vector3f;
 import org.slf4j.Logger;
@@ -24,13 +24,16 @@ import org.terasology.engine.logic.characters.events.HorizontalCollisionEvent;
 import org.terasology.engine.logic.characters.events.VerticalCollisionEvent;
 import org.terasology.engine.logic.delay.DelayManager;
 import org.terasology.engine.logic.delay.DelayedActionTriggeredEvent;
-import org.terasology.engine.logic.health.event.ActivateRegenEvent;
-import org.terasology.engine.logic.health.event.BeforeDamagedEvent;
-import org.terasology.engine.logic.health.event.DamageSoundComponent;
-import org.terasology.engine.logic.health.event.DeactivateRegenEvent;
-import org.terasology.engine.logic.health.event.DoDamageEvent;
-import org.terasology.engine.logic.health.event.DoRestoreEvent;
-import org.terasology.engine.logic.health.event.OnDamagedEvent;
+import org.terasology.logic.health.DestroyEvent;
+import org.terasology.logic.health.EngineDamageTypes;
+import org.terasology.logic.health.HealthComponent;
+import org.terasology.logic.health.event.ActivateRegenEvent;
+import org.terasology.logic.health.event.BeforeDamagedEvent;
+import org.terasology.logic.health.event.DamageSoundComponent;
+import org.terasology.logic.health.event.DeactivateRegenEvent;
+import org.terasology.logic.health.event.DoDamageEvent;
+import org.terasology.logic.health.event.DoRestoreEvent;
+import org.terasology.logic.health.event.OnDamagedEvent;
 import org.terasology.engine.logic.inventory.ItemComponent;
 import org.terasology.math.TeraMath;
 import org.terasology.engine.registry.In;

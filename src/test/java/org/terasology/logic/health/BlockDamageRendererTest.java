@@ -1,7 +1,7 @@
 // Copyright 2021 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
 
-package org.terasology.engine.logic.health;
+package org.terasology.logic.health;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

@@ -1,6 +1,6 @@
 // Copyright 2020 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
-package org.terasology.engine.logic.health;
+package org.terasology.logic.health;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Ordering;
@@ -17,9 +17,10 @@ import org.terasology.engine.entitySystem.systems.BaseComponentSystem;
 import org.terasology.engine.entitySystem.systems.RegisterMode;
 import org.terasology.engine.entitySystem.systems.RegisterSystem;
 import org.terasology.engine.entitySystem.systems.UpdateSubscriberSystem;
-import org.terasology.engine.logic.health.event.ActivateRegenEvent;
-import org.terasology.engine.logic.health.event.DeactivateRegenEvent;
-import org.terasology.engine.logic.health.event.OnFullyHealedEvent;
+import org.terasology.logic.health.HealthComponent;
+import org.terasology.logic.health.event.ActivateRegenEvent;
+import org.terasology.logic.health.event.DeactivateRegenEvent;
+import org.terasology.logic.health.event.OnFullyHealedEvent;
 import org.terasology.math.TeraMath;
 import org.terasology.engine.registry.In;
 

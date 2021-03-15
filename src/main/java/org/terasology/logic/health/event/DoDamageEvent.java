@@ -18,7 +18,7 @@ package org.terasology.logic.health.event;
 import org.terasology.engine.entitySystem.entity.EntityRef;
 import org.terasology.engine.entitySystem.event.Event;
 import org.terasology.engine.entitySystem.prefab.Prefab;
-import org.terasology.logic.health.EngineDamageTypes;
+import org.terasology.engine.logic.health.EngineDamageTypes;
 
 /**
  * This event should be sent to cause damage to an entity.

@@ -1,6 +1,6 @@
 // Copyright 2020 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
-package org.terasology.engine.logic.health;
+package org.terasology.logic.health;
 
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SortedSetMultimap;
@@ -14,8 +14,8 @@ import java.util.Map;
 /**
  * Not for direct access! Use regen events instead.
  *
- * @see org.terasology.engine.logic.health.event.ActivateRegenEvent
- * @see org.terasology.engine.logic.health.event.DeactivateRegenEvent
+ * @see org.terasology.logic.health.event.ActivateRegenEvent
+ * @see org.terasology.logic.health.event.DeactivateRegenEvent
  */
 public class RegenComponent implements Component {
     /**

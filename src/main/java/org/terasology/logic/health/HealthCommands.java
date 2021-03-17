@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.engine.logic.health;
+package org.terasology.logic.health;
 
 import org.terasology.assets.ResourceUrn;
 import org.terasology.engine.entitySystem.entity.EntityRef;
@@ -24,13 +24,15 @@ import org.terasology.engine.entitySystem.systems.RegisterSystem;
 import org.terasology.engine.logic.console.commandSystem.annotations.Command;
 import org.terasology.engine.logic.console.commandSystem.annotations.CommandParam;
 import org.terasology.engine.logic.console.commandSystem.annotations.Sender;
-import org.terasology.engine.logic.health.event.DoDamageEvent;
-import org.terasology.engine.logic.health.event.DoRestoreEvent;
+import org.terasology.engine.logic.health.DestroyEvent;
+import org.terasology.engine.logic.health.EngineDamageTypes;
 import org.terasology.engine.logic.permission.PermissionManager;
 import org.terasology.engine.network.ClientComponent;
 import org.terasology.engine.registry.In;
 import org.terasology.engine.registry.Share;
 import org.terasology.engine.utilities.Assets;
+import org.terasology.logic.health.event.DoDamageEvent;
+import org.terasology.logic.health.event.DoRestoreEvent;
 
 import java.util.HashMap;
 import java.util.Optional;

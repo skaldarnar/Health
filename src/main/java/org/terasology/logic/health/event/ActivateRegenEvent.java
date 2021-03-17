@@ -1,23 +1,23 @@
 // Copyright 2020 The Terasology Foundation
 // SPDX-License-Identifier: Apache-2.0
-package org.terasology.engine.logic.health.event;
+package org.terasology.logic.health.event;
 
 import org.terasology.engine.entitySystem.event.Event;
 
-import static org.terasology.engine.logic.health.RegenAuthoritySystem.BASE_REGEN;
+import static org.terasology.logic.health.RegenAuthoritySystem.BASE_REGEN;
 
 /**
  * Send this event to active regeneration of health points for an entity.
  * <p>
- * The targeted entity must have a {@link org.terasology.engine.logic.health.HealthComponent} for this event to have an
+ * The targeted entity must have a {@link org.terasology.logic.health.HealthComponent} for this event to have an
  * effect.
  * <p>
- * The {@link org.terasology.engine.logic.health.RegenAuthoritySystem} manages regeneration effects and updates affected
+ * The {@link org.terasology.logic.health.RegenAuthoritySystem} manages regeneration effects and updates affected
  * components every "tick". A tick currently occurs once per second.
  *
- * @see org.terasology.engine.logic.health.RegenAuthoritySystem
- * @see org.terasology.engine.logic.health.RegenComponent
- * @see org.terasology.engine.logic.health.HealthComponent
+ * @see org.terasology.logic.health.RegenAuthoritySystem
+ * @see org.terasology.logic.health.RegenComponent
+ * @see org.terasology.logic.health.HealthComponent
  */
 public class ActivateRegenEvent implements Event {
     /**
@@ -37,7 +37,7 @@ public class ActivateRegenEvent implements Event {
      * Active base regeneration for the target entity.
      * <p>
      * Base regeneration (or "natural regeneration") is active until the entity is back at full health. The regeneration
-     * value is typically derived from {@link org.terasology.engine.logic.health.HealthComponent#regenRate}.
+     * value is typically derived from {@link org.terasology.logic.health.HealthComponent#regenRate}.
      */
     public ActivateRegenEvent(float value) {
         this.value = value;

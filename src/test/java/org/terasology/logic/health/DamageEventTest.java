@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.engine.logic.health;
+
+package org.terasology.logic.health;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,14 +22,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terasology.engine.entitySystem.entity.EntityManager;
 import org.terasology.engine.entitySystem.entity.EntityRef;
-import org.terasology.engine.logic.health.event.BeforeDamagedEvent;
-import org.terasology.engine.logic.health.event.DoDamageEvent;
 import org.terasology.engine.logic.players.PlayerCharacterComponent;
+import org.terasology.engine.registry.In;
+import org.terasology.logic.health.event.BeforeDamagedEvent;
+import org.terasology.logic.health.event.DoDamageEvent;
 import org.terasology.moduletestingenvironment.MTEExtension;
 import org.terasology.moduletestingenvironment.ModuleTestingHelper;
 import org.terasology.moduletestingenvironment.TestEventReceiver;
 import org.terasology.moduletestingenvironment.extension.Dependencies;
-import org.terasology.engine.registry.In;
 
 import java.util.List;
 

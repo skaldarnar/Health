@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.engine.rendering.nui.layers.hud;
+package org.terasology.rendering.nui.layers.hud;
 
-import org.terasology.engine.logic.health.HealthComponent;
+import org.terasology.engine.rendering.nui.layers.hud.CoreHudWidget;
+import org.terasology.logic.health.HealthComponent;
 import org.terasology.engine.logic.players.LocalPlayer;
 import org.terasology.nui.databinding.ReadOnlyBinding;
 import org.terasology.nui.widgets.UIIconBar;

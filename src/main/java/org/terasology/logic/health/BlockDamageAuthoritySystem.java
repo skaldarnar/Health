@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.terasology.engine.logic.health;
+package org.terasology.logic.health;
 
 import org.joml.Vector2fc;
 import org.joml.Vector3f;
@@ -29,11 +29,8 @@ import org.terasology.engine.entitySystem.systems.BaseComponentSystem;
 import org.terasology.engine.entitySystem.systems.RegisterMode;
 import org.terasology.engine.entitySystem.systems.RegisterSystem;
 import org.terasology.engine.logic.characters.events.AttackEvent;
-import org.terasology.engine.logic.health.event.BeforeDamagedEvent;
-import org.terasology.engine.logic.health.event.OnDamagedEvent;
-import org.terasology.engine.logic.health.event.OnFullyHealedEvent;
+import org.terasology.logic.health.HealthComponent;
 import org.terasology.engine.logic.location.LocationComponent;
-import org.terasology.math.TeraMath;
 import org.terasology.engine.particles.components.ParticleDataSpriteComponent;
 import org.terasology.engine.particles.components.generators.TextureOffsetGeneratorComponent;
 import org.terasology.engine.registry.In;
@@ -51,6 +48,10 @@ import org.terasology.engine.world.block.family.BlockFamily;
 import org.terasology.engine.world.block.regions.ActAsBlockComponent;
 import org.terasology.engine.world.block.sounds.BlockSounds;
 import org.terasology.engine.world.block.tiles.WorldAtlas;
+import org.terasology.logic.health.event.BeforeDamagedEvent;
+import org.terasology.logic.health.event.OnDamagedEvent;
+import org.terasology.logic.health.event.OnFullyHealedEvent;
+import org.terasology.math.TeraMath;
 
 import java.util.Arrays;
 import java.util.List;

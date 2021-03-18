@@ -1,5 +1,6 @@
-Health
-=======
+<div align="center">
+<img src="./docs/_media/banner.png">
+</div>
 
 This module handles regeneration, restoration and damage of entities.
 

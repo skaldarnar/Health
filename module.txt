@@ -4,7 +4,7 @@
     "isReleaseManaged": true,
     "author" : "The Terasology Foundation",
     "displayName" : "Health",
-    "description" : "This module provides basic implementation of Health",
+    "description" : "Adds the concept of health (or hitpoints) to the game and handles regeneration, restoration and damage of entities.",
     "dependencies" : [
         { "id": "ModuleTestingEnvironment", "minVersion": "0.2.0", "optional": true },
         { "id": "CoreAssets", "minVersion": "2.0.1" }

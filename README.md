@@ -2,41 +2,42 @@
 <img src="./docs/_media/banner.png">
 </div>
 
-This module handles regeneration, restoration and damage of entities.
+_This is a module for [Terasology].
+It adds the concept of health (or hitpoints) to the game and handles regeneration, restoration and damage of entities._
 
-## Regeneration
-Handles the natural healing of entities (and blocks).
-To activate regeneration send `ActivateRegenEvent(String id, float value, float endTime)`. Health is regenerated every 
-second. Empty event `ActivateRegenEvent()` activates base regeneration of entity.
+<h2 align="center"><a href="https://terasology.github.io/Health">👉 Documentation 👈</a></h2>
 
-To deactivate particular type of regeneration, send `DeactivateRegenEvent(String id)`. Empty event 
-`DeactivateRegenEvent()` deactivates base regeneration fo entity.
+## Contributing
 
-## Restoration
-Handles magical healing of entities. 
-To heal an entity, send `DoRestoreEvent(amount, instigatorRef)`. 
+We welcome contributions to our modules, be it bug fixes or feature contributions. 
+Check out the [Contributor Guide][contributor-guide] on the main project wiki to learn more.
 
-The event chain of restoration:
-* DoRestoreEvent
-* BeforeRestoreEvent 
-* Entity restored, health component saved
-* OnRestoreEvent
-* OnFullyHealedEvent (if healed to full health)
+To check out this module (and all its dependencies) to your Terasology workspace run (in the workspace root):
 
-## Damage System
-Handles damage dealt to entities with health. Send `DoDamageEvent`
-to deal damage to entity. 
+```
+groovyw module recurse Health
+```
 
-Event chain:
-* DoDamageEvent
-* BeforeDamageEvent 
-* Entity damaged, health component saved
-* OnDamagedEvent
+To build a module JAR for just this module run (in the workspace root):
 
-Commands:
-* damageResist(damagetype,percentage): gives resistance to damage (damagetype = all for total resistance).
-* damageImmune(damagetype): percentage = 100 by default.
-* checkResistance(): gives list of active resistance values.
+```
+gradlew :module:Health:jar
+```
 
-## Block Damage System
-Enables block to sustain some damage before getting destroyed, and produces block particle effect on damage.
+To run all tests and static code checks for this module run (in the workspace root):
+
+```
+gradlew :module:Health:check
+```
+
+### Documentation via gh-pages
+
+The documentation of this module is build with [docsify]. 
+It is served via [gh-pages].
+To preview the site you can either use the `docsify` [CLI tool](https://github.com/docsifyjs/docsify-cli) or just run a static server on the `docs` folder.
+
+<!-- References -->
+[Terasology]: https://github.com/MovingBlocks/Terasology
+[gh-pages]: https://pages.github.com/
+[docsify]: https://docsify.js.org/#/
+[contributor-guide]: https://github.com/MovingBlocks/Terasology/wiki/Contributor-Quick-Start
